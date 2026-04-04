@@ -63,14 +63,14 @@ export const metadata: Metadata = {
     title: "ClawICU — OpenClaw Emergency Rescue",
     description:
       "Rescue system for OpenClaw. Diagnose and fix common issues with one command.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "ClawICU — OpenClaw Emergency Rescue",
-      },
-    ],
+      images: [
+        {
+          url: "/og-image.svg",
+          width: 1200,
+          height: 630,
+          alt: "ClawICU — OpenClaw Emergency Rescue",
+        },
+      ],
   },
   twitter: {
     card: "summary_large_image",
