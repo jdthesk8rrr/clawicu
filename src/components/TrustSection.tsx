@@ -1,32 +1,40 @@
-import { Shield, Award, CheckCircle, Star } from "lucide-react";
-
-const trustItems = [
-  { icon: Shield, label: "SOC 2 Certified", sublabel: "Enterprise Security" },
-  { icon: Award, label: "Open Source", sublabel: "MIT License" },
-  { icon: CheckCircle, label: "Zero Config", sublabel: "Works Out of Box" },
-  { icon: Star, label: "1.2k+ Stars", sublabel: "GitHub" },
-];
+import { Github, Shield, Heart, ExternalLink } from "lucide-react";
 
 export function TrustSection() {
   return (
-    <section className="mx-auto w-full max-w-[860px] px-6 py-16">
-      <p className="mb-8 text-center font-mono text-xs uppercase tracking-widest text-[#5a6480]">
-        Trusted by Developers Worldwide
-      </p>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {trustItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.label}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center backdrop-blur-[12px] transition-all duration-300 hover:border-primary/30 hover:shadow-[0_0_20px_rgba(255,77,77,0.1)]"
-            >
-              <Icon className="h-5 w-5 text-primary" />
-              <span className="text-sm font-semibold text-[#f0f4ff]">{item.label}</span>
-              <span className="text-xs text-[#5a6480]">{item.sublabel}</span>
-            </div>
-          );
-        })}
+    <section className="mx-auto w-full max-w-6xl px-6 py-16">
+      <div className="rounded-2xl border border-border/50 bg-card/30 p-6 text-center backdrop-blur-[8px]">
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          <a
+            href="https://github.com/SonicBotMan/clawicu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Github className="h-5 w-5" />
+            <span className="font-semibold text-foreground">1.2k+ Stars</span>
+            <span>on GitHub</span>
+            <ExternalLink className="h-3 w-3 opacity-50" />
+          </a>
+          
+          <div className="h-6 w-px bg-border" />
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Shield className="h-5 w-5 text-accent" />
+            <span>MIT License</span>
+          </div>
+          
+          <div className="h-6 w-px bg-border" />
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Heart className="h-5 w-5 text-primary" />
+            <span>100% Open Source</span>
+          </div>
+        </div>
+        
+        <p className="mt-4 text-sm text-muted-foreground">
+          Free forever. No tracking. No paid upgrades required.
+        </p>
       </div>
     </section>
   );

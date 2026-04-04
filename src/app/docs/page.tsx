@@ -19,6 +19,13 @@ import {
   Gauge,
   RefreshCcw,
   Power,
+  UserCheck,
+  MessageSquare,
+  ShieldOff,
+  LayoutDashboard,
+  HeartOff,
+  Globe,
+  Terminal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -36,6 +43,13 @@ const iconMap: Record<string, LucideIcon> = {
   Gauge,
   RefreshCcw,
   Power,
+  UserCheck,
+  MessageSquare,
+  ShieldOff,
+  LayoutDashboard,
+  HeartOff,
+  Globe,
+  Terminal,
 };
 
 export const metadata: Metadata = {

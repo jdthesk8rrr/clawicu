@@ -99,8 +99,8 @@ export function RescueSteps() {
           <div
             key={phase.number}
             className={cn(
-              "reveal group relative overflow-hidden rounded-2xl border border-border bg-card backdrop-blur-[12px] transition-all duration-300",
-               isOpen
+              "group relative overflow-hidden rounded-2xl border border-border bg-card backdrop-blur-[12px] transition-all duration-300",
+              isOpen
                 ? "border-primary/30 bg-card-strong"
                 : "hover:border-border/50 hover:bg-card"
             )}

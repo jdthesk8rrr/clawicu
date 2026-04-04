@@ -2,7 +2,7 @@ import { BookOpen, Terminal } from "lucide-react";
 
 export function CTASection() {
   return (
-    <section id="get-started" className="relative mx-auto w-full max-w-[860px] px-6 py-24">
+    <section id="get-started" className="relative mx-auto w-full max-w-6xl px-6 py-24">
       <div className="reveal">
         <div className="relative overflow-hidden rounded-3xl border border-border/30 bg-gradient-to-br from-surface/80 to-surface/40 p-12 text-center backdrop-blur-xl">
           <div className="absolute -left-32 -top-32 h-64 w-64 rounded-full bg-[#ff4d4d]/20 blur-[100px]" />

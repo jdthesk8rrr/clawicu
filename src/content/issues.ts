@@ -301,6 +301,172 @@ export const ISSUES: Issue[] = [
     relatedChecks: ["check-binary", "check-node", "check-gateway", "check-port"],
     relatedRepairs: ["repair-gateway", "repair-daemon"],
   },
+  {
+    id: "pairing-required",
+    slug: "pairing-required",
+    title: "Pairing Not Approved",
+    description:
+      "A sender or device has requested pairing but is waiting for approval. Messages from unapproved senders are silently ignored until pairing is approved.",
+    icon: "UserCheck",
+    severity: "warn",
+    diagnosis:
+      "Check pending pairing requests: `openclaw pairing list --channel <channel>`. Look for `pairing request` in logs. In groups, also check if mention patterns are configured correctly.",
+    steps: [
+      "List pending pairing requests: `openclaw pairing list --channel <channel>`",
+      "Approve the sender: `openclaw pairing approve --channel <channel> --account <id>`",
+      "For DMs, set policy to open: add `channels.<channel>.dmPolicy: \"open\"` to config",
+      "For groups, ensure the sender is in the allowlist or set `requireMention: false`",
+      "Test by sending another message after approval",
+    ],
+    relatedChecks: ["check-gateway", "check-channels"],
+    relatedRepairs: ["repair-gateway"],
+  },
+  {
+    id: "mention-required",
+    slug: "mention-required",
+    title: "Mention Required in Group",
+    description:
+      "OpenClaw ignores messages in group chats unless the bot is @mentioned. This is a security feature to prevent the bot from responding to every message in a group.",
+    icon: "MessageSquare",
+    severity: "warn",
+    diagnosis:
+      "Check logs for `drop guild message (mention required`. Verify group configuration: `openclaw config get channels` and look for `mentionPatterns` or `requireMention` settings.",
+    steps: [
+      "Check group channel config: `openclaw config get channels`",
+      "Update mention settings in config.json5 to add your group or disable mention requirement: `channels.<channel>.groups.\"*\".requireMention: false`",
+      "Or add your group ID to mention patterns: `channels.<channel>.groups.\"<group-id>\".requireMention: true`",
+      "Restart the gateway after config changes: `openclaw gateway restart`",
+      "Test by @mentioning the bot in the group",
+    ],
+    relatedChecks: ["check-gateway", "check-channels"],
+    relatedRepairs: ["repair-gateway"],
+  },
+  {
+    id: "channel-auth-failure",
+    slug: "channel-auth-failure",
+    title: "Channel Authentication Failed",
+    description:
+      "A channel (Discord, Telegram, Slack, etc.) failed to authenticate or lost authorization. Bot token may be expired or revoked.",
+    icon: "ShieldOff",
+    severity: "fatal",
+    diagnosis:
+      "Check channel status: `openclaw channels status --probe`. Look for `401`, `403`, `missing_scope`, or `not_in_channel` in logs. Verify the bot token has required permissions.",
+    steps: [
+      "Run channel probe: `openclaw channels status --probe`",
+      "Check logs for auth errors: `grep -E '401|403|Forbidden|missing_scope' ~/.openclaw/logs/*`",
+      "Verify bot token: Discord requires bot token, Telegram needs API ID/hash, Slack needs workspace token",
+      "For Discord: Re-add the bot to the server with correct permissions",
+      "For Telegram: Regenerate session via `openclaw channels configure telegram`",
+      "Restart gateway and re-test: `openclaw gateway restart`",
+    ],
+    relatedChecks: ["check-gateway", "check-credentials", "check-channels"],
+    relatedRepairs: ["repair-credentials", "repair-gateway"],
+  },
+  {
+    id: "dashboard-connect-failed",
+    slug: "dashboard-connect-failed",
+    title: "Dashboard Cannot Connect",
+    description:
+      "The OpenClaw Control UI (browser dashboard) fails to connect to the gateway. This is usually an auth token mismatch or origin allowlist issue.",
+    icon: "LayoutDashboard",
+    severity: "warn",
+    diagnosis:
+      "Check gateway status: `openclaw gateway status`. Look for `origin not allowed`, `device identity required`, or `AUTH_TOKEN_MISMATCH` in logs.",
+    steps: [
+      "Get the auth token: `openclaw config get gateway.auth.token`",
+      "Open the dashboard URL shown in `openclaw gateway status`",
+      "Paste the token when prompted in the dashboard",
+      "If origin error: add your browser origin to `gateway.controlUi.allowedOrigins` in config",
+      "For device auth issues: `openclaw devices list` and approve/rotate stale tokens",
+      "Try connecting from localhost if remote access is not configured",
+    ],
+    relatedChecks: ["check-gateway", "check-config"],
+    relatedRepairs: ["repair-gateway"],
+  },
+  {
+    id: "cron-not-running",
+    slug: "cron-not-running",
+    title: "Cron Job Not Executing",
+    description:
+      "Scheduled cron jobs are not running at their specified times. The cron scheduler may be disabled or the job configuration is invalid.",
+    icon: "Clock",
+    severity: "warn",
+    diagnosis:
+      "Check cron status: `openclaw cron status` and `openclaw cron list`. Look for `scheduler disabled` or empty job list.",
+    steps: [
+      "Check cron scheduler status: `openclaw cron status`",
+      "List all cron jobs: `openclaw cron list`",
+      "View recent runs: `openclaw cron runs --id <jobId> --limit 10`",
+      "Enable cron if disabled: `openclaw config set cron.enabled true`",
+      "Check heartbeat settings if using heartbeat-based triggers",
+      "Verify the job's schedule syntax is valid (cron format)",
+    ],
+    relatedChecks: ["check-gateway", "check-config"],
+    relatedRepairs: ["repair-gateway"],
+  },
+  {
+    id: "heartbeat-skipped",
+    slug: "heartbeat-skipped",
+    title: "Heartbeat Not Sent",
+    description:
+      "The scheduled heartbeat message is not being sent. This can happen during quiet hours, when there are active requests in flight, or when the heartbeat file is empty.",
+    icon: "HeartOff",
+    severity: "info",
+    diagnosis:
+      "Check heartbeat status: `openclaw system heartbeat last`. Look for skip reasons like `quiet-hours`, `requests-in-flight`, `empty-heartbeat-file`, or `no-tasks-due` in logs.",
+    steps: [
+      "View last heartbeat: `openclaw system heartbeat last`",
+      "Check skip reasons in logs: `grep heartbeat ~/.openclaw/logs/*`",
+      "Ensure HEARTBEAT.md contains actual task items, not just headers",
+      "Check quiet hours config if `quiet-hours` is the skip reason",
+      "If `requests-in-flight`: wait for pending requests to complete",
+      "For `no-tasks-due`: add tasks with due dates to HEARTBEAT.md",
+    ],
+    relatedChecks: ["check-gateway", "check-config"],
+    relatedRepairs: ["repair-gateway"],
+  },
+  {
+    id: "browser-unavailable",
+    slug: "browser-unavailable",
+    title: "Browser Tool Not Working",
+    description:
+      "The browser automation tool fails to launch Chrome or connect via CDP. This prevents screenshot, web scraping, and browser-based automation.",
+    icon: "Globe",
+    severity: "warn",
+    diagnosis:
+      "Check browser status: `openclaw browser status`. Look for `unknown command browser`, `Failed to start Chrome`, or `CDP port` errors in logs.",
+    steps: [
+      "Verify browser plugin is loaded: `openclaw browser status`",
+      "Ensure `browser` is in `plugins.allow` in config if allowlist is set",
+      "Check Chrome is installed: Chrome or Chromium must be available",
+      "For remote CDP: verify the CDP URL is reachable from gateway host",
+      "Restart browser: `openclaw browser stop && openclaw browser start`",
+      "Check firewall: ensure localhost CDP ports are not blocked",
+    ],
+    relatedChecks: ["check-gateway", "check-plugins"],
+    relatedRepairs: ["repair-gateway", "repair-plugins"],
+  },
+  {
+    id: "exec-approval-required",
+    slug: "exec-approval-required",
+    title: "Exec Command Requires Approval",
+    description:
+      "A shell command that was previously allowed now requires manual approval. This happens when exec security policy tightens or a new session is created.",
+    icon: "Terminal",
+    severity: "warn",
+    diagnosis:
+      "Check exec config: `openclaw config get tools.exec.security` and `tools.exec.ask`. Look for `Approval required` or `SYSTEM_RUN_DENIED` in logs.",
+    steps: [
+      "Check current exec settings: `openclaw config get tools.exec`",
+      "Set to allowlist mode for less friction: `openclaw config set tools.exec.security allowlist`",
+      "Disable approval prompt: `openclaw config set tools.exec.ask off`",
+      "Add commands to allowlist: `openclaw config set tools.exec.allowlist '[\"git\", \"npm\", \"node\"]'`",
+      "Restart gateway: `openclaw gateway restart`",
+      "Approve pending command: `openclaw approve <command>`",
+    ],
+    relatedChecks: ["check-gateway", "check-config"],
+    relatedRepairs: ["repair-gateway"],
+  },
 ];
 
 export function getIssueBySlug(slug: string): Issue | undefined {
