@@ -4,7 +4,7 @@
 
 <p align="center">
 
-![Version](https://img.shields.io/badge/version-0.2.0-2564eb?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.3.0-2564eb?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)
 ![OpenClaw](https://img.shields.io/badge/OpenClaw-v2026.4-8b5cf6?style=for-the-badge)
 ![Issues](https://img.shields.io/badge/Issues-24-ef4444?style=for-the-badge)
@@ -73,15 +73,41 @@ OpenClaw manages AI agents, plugins, channels, and system commands. When it fail
 │  Phase 4 · Treatment Plan                                         │
 │  [a] Auto · [1] Quick · [2] Full · [3] Nuclear                 │
 ├─────────────────────────────────────────────────────────────────┤
-│  Phase 5 · Execute                                                │
-│  Apply openclaw doctor --fix repairs                            │
+│  Phase 5 · Tool Unlock Panel                                      │
+│  Interactive config editor for exec, browser, elevated, sandbox   │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 6 · Report                                                │
-│  Summary + restart instructions                                  │
+│  Summary + restart instructions + change log                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### What `openclaw doctor --fix` Does
+### Tool Unlock Panel (Phase 5)
+
+Interactive security configuration editor. No need to edit config files manually.
+
+```
+  [1]  Show current tool config status
+  [2]  Exec Free Mode  (security=full, ask=off) — DANGEROUS
+  [3]  Enable Browser Tool
+  [4]  Disable Elevated restrictions
+  [5]  Open Sandbox restrictions — DANGEROUS
+  [6]  Restore Safe Defaults
+  [0]  Done / Skip
+```
+
+| Option | Config Key | Effect |
+|--------|-----------|--------|
+| **Exec Free Mode** | `tools.exec.security=full`<br>`tools.exec.ask=off` | Removes all exec restrictions and approval prompts |
+| **Enable Browser** | `tools.allow += "browser"` | Allows browser tool to run |
+| **Disable Elevated** | `tools.elevated.enabled=false` | Disables elevated exec mode |
+| **Open Sandbox** | `tools.sandbox.tools.allow=[*]` | Allows all sandbox tools |
+| **Safe Defaults** | various | Resets all to secure defaults |
+
+> **Security note:** Dangerous options (2, 5) require typing `yes` to confirm.
+
+---
+
+## What `openclaw doctor --fix` Does
 
 | Category | Fixes |
 |----------|-------|
@@ -124,8 +150,8 @@ clawicu/
     │
     └── components/
         ├── Hero.tsx             # ICU Specialist banner
-        ├── PatientSymptoms.tsx   # Issue grid with severity badges
-        ├── TreatmentPlan.tsx     # 6-phase accordion
+        ├── PatientSymptoms.tsx    # Issue grid with severity badges
+        ├── TreatmentPlan.tsx      # 6-phase accordion
         ├── ExaminationProcess.tsx # 4-step flow
         └── QuickStartGuides.tsx  # Links to OpenClaw docs
 ```
@@ -193,9 +219,23 @@ MIT License · [github.com/SonicBotMan/clawicu](https://github.com/SonicBotMan/c
 阶段 2 · 诊断检查   →  二进制 · 进程 · 配置 · 磁盘 · 网络
 阶段 3 · 分诊评估   →  危险 / 警告 / 稳定
 阶段 4 · 治疗方案   →  自动 / 快速 / 完整 / 重置
-阶段 5 · 执行修复   →  应用 openclaw doctor --fix
+阶段 5 · 工具解锁面板  →  交互式配置编辑器（exec、浏览器、elevated、沙盒）
 阶段 6 · 出院报告   →  变更摘要 + 重启指导
 ```
+
+### 工具解锁面板（Phase 5）
+
+交互式安全配置编辑器，无需手动编辑配置文件。
+
+| 选项 | 配置键 | 效果 |
+|------|--------|------|
+| **Exec 自由模式** | `tools.exec.security=full`<br>`tools.exec.ask=off` | 移除所有 exec 限制和审批提示 |
+| **启用浏览器** | `tools.allow += "browser"` | 允许运行浏览器工具 |
+| **禁用 Elevated** | `tools.elevated.enabled=false` | 禁用 elevated exec 模式 |
+| **开放沙盒** | `tools.sandbox.tools.allow=[*]` | 允许所有沙盒工具 |
+| **安全默认** | various | 重置为安全默认值 |
+
+> **安全提示：** 危险选项（2、5）需要输入 `yes` 确认。
 
 ### openclaw doctor --fix 自动处理
 
