@@ -314,7 +314,6 @@ rescue_announce() {
 
 CHECKS_FAILED=0
 CHECKS_WARN=0
-RESULTS_FILE="$CLAWICU_TMPDIR/check-results.txt"
 
 check_binary() {
     check_result PROCESSING "OpenClaw Binary" "checking..."
@@ -476,6 +475,7 @@ phase_1_doctor() {
 phase_2_checks() {
     phase_indicator 2 6 "Running Diagnostic Checks"
 
+    RESULTS_FILE="$CLAWICU_TMPDIR/check-results.txt"
     > "$RESULTS_FILE"
 
     check_binary
