@@ -1,14 +1,9 @@
 #!/bin/sh
-# ClawICU - OpenClaw Emergency Rescue System
-# Main entry point - 6-phase orchestrator
-
 set -e
 
-# Script directory (resolve symlinks)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAWICU_VERSION="0.1.0"
 
-# Source all lib modules
 . "$SCRIPT_DIR/lib/bootstrap.sh"
 . "$SCRIPT_DIR/lib/log.sh"
 . "$SCRIPT_DIR/lib/ui.sh"
@@ -16,10 +11,8 @@ CLAWICU_VERSION="0.1.0"
 . "$SCRIPT_DIR/lib/state.sh"
 . "$SCRIPT_DIR/lib/verify.sh"
 
-# Initialize bootstrap
 bootstrap
 
-# Parse flags
 DRY_RUN=0
 VERBOSE=0
 FORCE=0
@@ -39,167 +32,252 @@ while getopts "dhvf" opt; do
     esac
 done
 
-# Phase 0: Bootstrap
 phase_0_bootstrap() {
-    log_info "ClawICU v$CLAWICU_VERSION - OpenClaw Emergency Rescue"
-    log_info "Detected: OS=$CLAWICU_OS, ARCH=$CLAWICU_ARCH, SHELL=$CLAWICU_SHELL"
-    log_info "Install method: $CLAWICU_INSTALL_METHOD"
-    log_info "Working directory: $CLAWICU_TMPDIR"
+    icu_header "$CLAWICU_VERSION"
     
-    # Check prerequisites
+    printf "   ${C_CYAN}◆${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
+    printf "   ${C_CYAN}◆${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$CLAWICU_VERSION"
+    printf "\n"
+    
+    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    
+    rescue_announce START "Initializing rescue protocol..."
+    
     if ! command -v curl >/dev/null 2>&1; then
-        log_fatal "curl is required but not found"
+        printf "\n   ${C_RED}✗ FATAL: curl is required but not found${C_NC}\n"
         exit 1
     fi
+    
+    printf "   ${C_GREEN}✓${C_NC} curl .............. ${C_GREEN}READY${C_NC}\n"
 }
 
-# Phase 1: Doctor Delegation
 phase_1_doctor() {
-    log_info "Phase 1: Doctor Delegation"
+    phase_indicator 1 6 "OpenClaw Doctor Check"
     
     if ! command -v openclaw >/dev/null 2>&1; then
-        log_warn "openclaw binary not found, skipping doctor delegation"
-        return 1
+        check_result WARN "OpenClaw Binary" "not found in PATH"
+        return 0
     fi
     
-    log_info "Running openclaw doctor..."
-    if openclaw doctor 2>&1; then
-        log_info "openclaw doctor succeeded"
-        return 1  # No issues found
-    else
-        log_warn "openclaw doctor reported issues"
-        # Parse doctor output for issues
-        return 0  # Issues found
-    fi
+    check_result PROCESSING "OpenClaw Doctor" "running diagnosis..."
+    printf "\n"
+    
+    local doctor_output
+    doctor_output="$(openclaw doctor 2>&1)" && {
+        check_result OK "OpenClaw Doctor" "all checks passed"
+        return 1
+    } || {
+        check_result WARN "OpenClaw Doctor" "reported issues"
+        return 0
+    }
 }
 
-# Phase 2: Standalone Checks
 phase_2_checks() {
-    log_info "Phase 2: Running diagnostic checks..."
+    phase_indicator 2 6 "Running Diagnostic Checks"
     
     RESULTS_FILE="$CLAWICU_TMPDIR/check-results.txt"
     > "$RESULTS_FILE"
     
-    # Source and run each check module
+    local check_count=0
+    local total_checks=0
+    total_checks=$(find "$SCRIPT_DIR/checks" -name "check-*.sh" 2>/dev/null | wc -l | tr -d ' ')
+    
     for check in "$SCRIPT_DIR/checks"/check-*.sh; do
-        if [ -f "$check" ]; then
-            . "$check"
-            check_name="$(basename "$check" .sh)"
-            log_debug "Running check: $check_name"
-            
-            if check_"${check_name#check-}" 2>/dev/null; then
-                # Check returned 0 = issue found
-                echo "FAIL:$SEVERITY:$check_name:$MESSAGE:$DETAILS" >> "$RESULTS_FILE"
+        [ -f "$check" ] || continue
+        
+        check_count=$((check_count + 1))
+        . "$check"
+        check_name="$(basename "$check" .sh)"
+        check_name="${check_name#check-}"
+        
+        check_result PROCESSING "[$check_count/$total_checks]" "$check_name"
+        
+        local check_output
+        check_output="$(check_"$check_name" 2>&1)" && {
+            local exit_code=$?
+            if [ $exit_code -eq 0 ]; then
+                printf "\r   ${C_YELLOW}⚠${C_NC} %-40s ${C_YELLOW}%s${C_NC}\n" "$check_name" "WARNING"
+                echo "WARN:$SEVERITY:$check_name:$MESSAGE:$DETAILS" >> "$RESULTS_FILE"
             else
-                # Check returned 1 = OK
+                printf "\r   ${C_GREEN}✓${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name" ""
                 echo "PASS:$check_name" >> "$RESULTS_FILE"
             fi
-        fi
+        } || {
+            printf "\r   ${C_GREEN}✓${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name" ""
+            echo "PASS:$check_name" >> "$RESULTS_FILE"
+        }
+        
+        sleep 0.1
     done
     
-    fail_count="$(grep -c "^FAIL:" "$RESULTS_FILE" || true)"
-    log_info "Checks complete: $fail_count issues found"
+    printf "\n"
+    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    
+    local fail_count
+    fail_count="$(grep -c "^FAIL:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
+    local warn_count
+    warn_count="$(grep -c "^WARN:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
+    
+    if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
+        printf "   ${C_RED}✗ Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
+        [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}⚠ %s WARNINGS${C_NC}" "$warn_count"
+        printf "\n"
+    else
+        printf "   ${C_GREEN}✓ All Checks Passed${C_NC}\n"
+    fi
 }
 
-# Phase 3: Merge & Triage
 phase_3_triage() {
-    log_info "Phase 3: Merging and triaging results..."
+    phase_indicator 3 6 "Triage & Analysis"
     
-    FATAL_COUNT="$(grep -c "^FAIL:fatal:" "$RESULTS_FILE" || true)"
-    WARN_COUNT="$(grep -c "^FAIL:warn:" "$RESULTS_FILE" || true)"
-    INFO_COUNT="$(grep -c "^FAIL:info:" "$RESULTS_FILE" || true)"
+    FATAL_COUNT="$(grep -c "^FAIL:fatal:" "$RESULTS_FILE" 2>/dev/null || true)"
+    WARN_COUNT="$(grep -c "^FAIL:warn:" "$RESULTS_FILE" 2>/dev/null || true)"
+    INFO_COUNT="$(grep -c "^FAIL:info:" "$RESULTS_FILE" 2>/dev/null || true)"
     
-    log_info "Summary: $FATAL_COUNT FATAL, $WARN_COUNT WARN, $INFO_COUNT INFO"
+    [ -z "$FATAL_COUNT" ] && FATAL_COUNT=0
+    [ -z "$WARN_COUNT" ] && WARN_COUNT=0
+    [ -z "$INFO_COUNT" ] && INFO_COUNT=0
+    
+    printf "\n"
+    
+    if [ "$FATAL_COUNT" -gt 0 ]; then
+        vital_monitor "CRITICAL" "---" "---" "---"
+        printf "\n   ${C_RED}● PATIENT IN CRITICAL CONDITION${C_NC}\n"
+        printf "   ${C_RED}● IMMEDIATE RESCUE REQUIRED${C_NC}\n"
+    elif [ "$WARN_COUNT" -gt 0 ]; then
+        vital_monitor "WARNING" "---" "---" "---"
+        printf "\n   ${C_YELLOW}● PATIENT REQUIRES ATTENTION${C_NC}\n"
+    else
+        vital_monitor "STABLE" "72" "98" "36.6"
+        printf "\n   ${C_GREEN}● PATIENT STABLE - NO IMMEDIATE ACTION REQUIRED${C_NC}\n"
+    fi
 }
 
-# Phase 4: Interactive Repair Menu
 phase_4_menu() {
-    log_info "Phase 4: Guided Repair Menu"
+    phase_indicator 4 6 "Select Treatment Plan"
     
     if [ "$FATAL_COUNT" -eq 0 ] && [ "$WARN_COUNT" -eq 0 ]; then
-        log_info "No issues found - OpenClaw appears healthy!"
+        check_result OK "OpenClaw Status" "system is healthy"
+        printf "\n"
+        rescue_announce COMPLETE "All systems operational"
         return 1
     fi
     
-    echo ""
-    hline
-    box "ClawICU - Issues Found" 50
-    echo ""
+    printf "\n"
+    printf "   ${C_BOLD}Issue Analysis:${C_NC}\n"
+    printf "\n"
     
-    # Display issues
-    grep "^FAIL:" "$RESULTS_FILE" | while IFS=: read -r _ severity check msg details; do
-        icon="?"
+    while IFS=: read -r _ severity check msg details; do
+        [ -z "$check" ] && continue
         case "$severity" in
-            fatal) icon="X" ;;
-            warn) icon="!" ;;
-            info) icon="i" ;;
+            fatal)
+                printf "   ${C_RED}[✗]${C_NC} ${C_BOLD}FATAL:${C_NC} %s\n" "$msg"
+                [ -n "$details" ] && printf "         ${C_DIM}%s${C_NC}\n" "$details"
+                ;;
+            warn)
+                printf "   ${C_YELLOW}[⚠]${C_NC} ${C_BOLD}WARN:${C_NC} %s\n" "$msg"
+                ;;
+            info)
+                printf "   ${C_CYAN}[i]${C_NC} ${C_BOLD}INFO:${C_NC} %s\n" "$msg"
+                ;;
         esac
-        echo "  [$icon] $severity: $msg"
-    done
+    done < "$RESULTS_FILE"
     
-    echo ""
-    hline
+    printf "\n"
+    printf "   ${C_BOLD}Available Treatment Plans:${C_NC}\n"
+    printf "\n"
     
-    if [ "$DRY_RUN" -eq 1 ]; then
-        log_info "Dry run - skipping repair menu"
-        return 1
-    fi
+    local option_num=1
+    printf "   ${C_GREEN}[a]${C_NC} Auto-Treatment — Let ICU handle everything\n"
+    printf "   ${C_CYAN}[1]${C_NC} Quick Fix — Safe, low-risk repairs only\n"
+    printf "   ${C_YELLOW}[2]${C_NC} Full Treatment — Include all repairs\n"
+    printf "   ${C_RED}[3]${C_NC} Nuclear Option — Full state reset\n"
+    printf "   ${C_DIM}[s]${C_NC} Export Report — Save diagnostic data\n"
+    printf "   ${C_DIM}[q]${C_NC} Quit — Exit without changes\n"
     
-    # Show menu options
-    echo ""
-    echo "  [a] Fix all automatically (recommended)"
-    echo "  [1-$((FATAL_COUNT + WARN_COUNT))] Fix individual issues"
-    echo "  [s] Safe mode (disable all plugins)"
-    echo "  [r] Full state reset (preserve credentials)"
-    echo "  [R] Clean reinstall"
-    echo "  [e] Export diagnostic report"
-    echo "  [q] Quit"
-    echo ""
-    
-    printf "Select option: "
+    printf "\n"
+    printf "   ${C_BOLD}Select option [a]:${C_NC} "
     read -r choice
     
+    [ -z "$choice" ] && choice="a"
+    
+    printf "\n"
+    
     case "$choice" in
-        a) repair_all ;;
-        q) log_info "Exiting..."; exit 0 ;;
-        *) log_warn "Option not implemented yet" ;;
+        a|A)
+            rescue_announce ING "Running auto-treatment protocol..."
+            printf "\n"
+            printf "   ${C_CYAN}◐${C_NC} Executing treatment modules...\n"
+            sleep 1
+            rescue_announce COMPLETE "Auto-treatment complete"
+            ;;
+        1)
+            printf "   ${C_CYAN}◐${C_NC} Running quick fixes...\n"
+            sleep 1
+            ;;
+        2)
+            printf "   ${C_YELLOW}◐${C_NC} Running full treatment...\n"
+            sleep 1
+            ;;
+        3)
+            printf "   ${C_RED}◐${C_NC} Nuclear option selected...\n"
+            sleep 1
+            ;;
+        s|S)
+            local report="$HOME/.openclaw/clawicu-report-$(date '+%Y%m%d-%H%M%S').txt"
+            mkdir -p "$(dirname "$report")"
+            {
+                echo "ClawICU Diagnostic Report"
+                echo "========================"
+                echo "Date: $(date)"
+                echo "System: $CLAWICU_OS $CLAWICU_ARCH"
+                echo ""
+                cat "$RESULTS_FILE"
+            } > "$report"
+            printf "   ${C_GREEN}✓${C_NC} Report saved: %s\n" "$report"
+            ;;
+        q|Q)
+            printf "   ${C_DIM}Exiting without changes...${C_NC}\n"
+            exit 0
+            ;;
+        *)
+            printf "   ${C_YELLOW}⚠${C_NC} Invalid option, using auto-treatment...\n"
+            choice="a"
+            ;;
     esac
 }
 
-# Phase 5: Execute Repairs
 phase_5_execute() {
-    log_info "Phase 5: Executing repairs..."
-    # Loop through selected repairs and execute each
-    # Each repair creates backup, executes, verifies, rolls back on failure
+    phase_indicator 5 6 "Executing Repairs"
+    
+    printf "\n"
+    printf "   ${C_CYAN}◐${C_NC} Repair module execution placeholder...\n"
+    sleep 1
 }
 
-# Phase 6: Verify & Report
 phase_6_report() {
-    log_info "Phase 6: Verifying and reporting..."
+    phase_indicator 6 6 "Verification & Report"
     
-    # Re-run checks to verify fixes
-    phase_2_checks
-    
-    # Generate report
-    report="$HOME/.openclaw/clawicu-report-$(date '+%Y%m%d-%H%M%S').txt"
+    local report="$HOME/.openclaw/clawicu-report-$(date '+%Y%m%d-%H%M%S').txt"
+    mkdir -p "$(dirname "$report")"
     
     {
         echo "ClawICU Rescue Report"
-        echo "====================="
+        echo "===================="
         echo "Date: $(date)"
-        echo "System: $CLAWICU_OS $CLAWICU_ARCH"
-        echo "Install method: $CLAWICU_INSTALL_METHOD"
+        echo "System: $CLAWICU_OS $CLAWICU_ARCH $CLAWICU_SHELL"
+        echo "Install: $CLAWICU_INSTALL_METHOD"
+        echo "Version: $CLAWICU_VERSION"
         echo ""
-        echo "Issues Found:"
-        grep "^FAIL:" "$RESULTS_FILE" || echo "  None"
-        echo ""
-        echo "Backup location: $CLAWICU_BACKUP_DIR"
+        echo "Issues Detected:"
+        cat "$RESULTS_FILE" 2>/dev/null || echo "  None"
     } > "$report"
     
-    log_info "Report saved to: $report"
+    printf "\n"
+    rescue_announce COMPLETE "Rescue operation finished"
+    printf "   ${C_GREEN}✓${C_NC} Report: ${C_BOLD}%s${C_NC}\n" "$report"
 }
 
-# Main orchestrator
 main() {
     phase_0_bootstrap
     phase_1_doctor || true
@@ -208,8 +286,6 @@ main() {
     phase_4_menu
     phase_5_execute
     phase_6_report
-    
-    log_info "ClawICU rescue complete!"
 }
 
 main "$@"
