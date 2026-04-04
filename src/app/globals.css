@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ── Background ── */
+  --color-background: #050810;
+  --color-foreground: #f0f4ff;
+
+  /* ── Surface ── */
+  --color-surface: #0a0f1a;
+  --color-surface-foreground: #f0f4ff;
+
+  /* ── Card (glass effect) ── */
+  --color-card: rgba(10, 15, 26, 0.65);
+  --color-card-strong: rgba(10, 15, 26, 0.8);
+  --color-card-foreground: #f0f4ff;
+
+  /* ── Popover ── */
+  --color-popover: #0a0f1a;
+  --color-popover-foreground: #f0f4ff;
+
+  /* ── Primary — coral red ── */
+  --color-primary: #ff4d4d;
+  --color-primary-foreground: #050810;
+
+  /* ── Accent — cyan ── */
+  --color-accent: #00e5cc;
+  --color-accent-foreground: #050810;
+
+  /* ── Secondary ── */
+  --color-secondary: #111827;
+  --color-secondary-foreground: #f0f4ff;
+
+  /* ── Muted ── */
+  --color-muted: #111827;
+  --color-muted-foreground: #5a6480;
+
+  /* ── Destructive ── */
+  --color-destructive: #991b1b;
+  --color-destructive-foreground: #f0f4ff;
+
+  /* ── Success ── */
+  --color-success: #00e5cc;
+
+  /* ── Borders ── */
+  --color-border: rgba(136, 146, 176, 0.15);
+  --color-input: #111827;
+  --color-ring: #ff4d4d;
+
+  /* ── Terminal ── */
+  --color-terminal: #050810;
+  --color-terminal-border: rgba(255, 77, 77, 0.3);
+
+  /* ── Chart ── */
+  --color-chart-1: #ff4d4d;
+  --color-chart-2: #00e5cc;
+  --color-chart-3: #f0f4ff;
+
+  /* ── Coral shades ── */
+  --color-coral-bright: #ff4d4d;
+  --color-coral-mid: #e63946;
+  --color-coral-dark: #991b1b;
+  --color-cyan-bright: #00e5cc;
+  --color-cyan-mid: #14b8a6;
+
+  /* ── Text utilities ── */
+  --color-text-primary: #f0f4ff;
+  --color-text-secondary: #8892b0;
+  --color-text-muted: #5a6480;
+
+  /* ── Shadow colors ── */
+  --color-shadow-coral-soft: rgba(255, 77, 77, 0.15);
+  --color-shadow-coral-mid: rgba(255, 77, 77, 0.25);
+
+  /* ── Radii ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* ── Fonts ── */
+  --font-heading: var(--font-clash-display), system-ui, sans-serif;
+  --font-sans: var(--font-satoshi), system-ui, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 77, 77, 0.15), 0 0 60px rgba(255, 77, 77, 0.05); }
+  50% { box-shadow: 0 0 30px rgba(255, 77, 77, 0.25), 0 0 80px rgba(255, 77, 77, 0.1); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes ecg-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes star-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2000px); }
+}
+
+@layer base {
+  :root {
+    --font-clash-display: "Syne", system-ui, sans-serif;
+    --font-satoshi: "Outfit", system-ui, sans-serif;
+  }
+
+  * { @apply border-border; }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  ::selection {
+    background-color: rgba(255, 77, 77, 0.3);
+    color: #f0f4ff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050810; }
+::-webkit-scrollbar-thumb { background: #1a2035; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2a3050; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

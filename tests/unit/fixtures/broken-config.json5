@@ -1,0 +1,12 @@
+{
+    // broken config - trailing comma and comments not valid in strict JSON
+    "version": "1.0",
+    "projects": [
+        "project-a",
+        "project-b",
+    ],
+    /* block comment here */
+    "settings": {
+        "debug": true,
+    }
+}
