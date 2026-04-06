@@ -1,126 +1,105 @@
+<div align="center">
+
 # ClawICU
 
-### OpenClaw Emergency Rescue System
+### *The emergency room for your [OpenClaw](https://github.com/openclaw/openclaw) gateway.*
 
-<p align="center">
+One command. Twenty checks. Six phases. Back from the brink.
 
-![Version](https://img.shields.io/badge/rescue_script-0.2.0-ef4444?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)
-![OpenClaw](https://img.shields.io/badge/OpenClaw-gateway-8b5cf6?style=for-the-badge)
-![Issue guides](https://img.shields.io/badge/issue_guides-25-2563eb?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-64748b?style=for-the-badge)
+<br/>
 
-</p>
+[![Rescue script](https://img.shields.io/badge/rescue-0.2.0-ff4d4d?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://xagent.icu/r)
+[![Issue guides](https://img.shields.io/badge/guides-25-2563eb?style=for-the-badge)](https://xagent.icu/docs)
+[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%26%20Linux-64748b?style=for-the-badge)](https://xagent.icu/download)
 
-<p align="center">
+<br/>
 
-**[Website](https://xagent.icu)** ·
-**[Docs](https://xagent.icu/docs)** ·
-**[Rescue](https://xagent.icu/rescue)** ·
-**[SOS share](https://xagent.icu/sos)** ·
-**[Download](https://xagent.icu/download)** ·
-**[GitHub](https://github.com/SonicBotMan/clawicu)**
+[**Run it now**](https://xagent.icu/r) · [**Website**](https://xagent.icu) · [**Docs**](https://xagent.icu/docs) · [**Rescue walkthrough**](https://xagent.icu/rescue) · [**SOS / Share**](https://xagent.icu/sos) · [**Download**](https://xagent.icu/download)
 
-</p>
+</div>
 
 ---
 
-<p align="center">
+## Why this exists
 
-```
-██╗    ██╗ █████╗ ███████╗███████╗██╗     ██╗███╗   ██╗███████╗
-██║    ██║██╔══██╗██╔════╝██╔════╝██║     ██║████╗  ██║██╔════╝
-██║ █╗ ██║███████║███████╗███████╗██║     ██║██╔██╗ ██║█████╗
-██║███╗██║██╔══██║╚════██║╚════██║██║     ██║██║╚██╗██║██╔══╝
-╚███╔███╔╝██║  ██║███████║███████║███████╗██║██║ ╚████║███████╗
- ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
-```
+Your gateway was fine yesterday. Today: **plugins throwing `api.config.get`**, **`openclaw doctor` hangs forever**, Discord silently ignores DMs, **18789** looks “busy” but isn’t yours, **`plugins.allow` is empty**, CLI and gateway **don’t match versions** — and you’re grepping JSON5 at 2 a.m.
 
-**When OpenClaw breaks, ClawICU rushes in.**
-
-</p>
+> **ClawICU doesn’t replace OpenClaw.** It’s the stretcher team: triage → diagnose → treat → verify — with backups, menus that work even through `curl | sh`, and a doctor pass that **won’t hang your terminal**.
 
 ---
 
-## Quick start
-
-| | |
-|---|---|
-| **One-liner (recommended)** | `curl -fsSL https://xagent.icu/r \| sh` |
-| **Same script, explicit URL** | `curl -fsSL https://xagent.icu/rescue.sh \| sh` |
-| **Save then run** | `curl -fsSL https://xagent.icu/r -o rescue.sh && chmod +x rescue.sh && ./rescue.sh` |
-
-The bundled script is **POSIX `sh`**, works when piped from `curl`, and redirects **stdin from `/dev/tty`** so Phase 4 menus stay interactive.
-
-**Site:** [xagent.icu](https://xagent.icu) — ICU-themed marketing, docs, and SEO. **Issue encyclopedia:** [xagent.icu/docs](https://xagent.icu/docs) — **25** guided failure modes.
-
----
-
-## What ClawICU does
-
-ClawICU is a **structured rescue system** for [OpenClaw](https://github.com/openclaw/openclaw): detect what broke, triage severity, offer an interactive treatment plan, run targeted repairs (with backup), and re-verify.
-
-Not a forum thread — a **six-phase protocol** plus modular checks and repairs.
-
-### Six-phase protocol (shell rescue)
-
-| Phase | Name | What happens |
-|------:|------|----------------|
-| **0** | Bootstrap | OS / install method, temp dir, logging |
-| **1** | Doctor | `openclaw doctor` with **~30s timeout** (hangs from bad plugins are killed); output captured for later phases |
-| **2** | Standalone checks | **20** diagnostic modules (config JSON5, gateway `/healthz`, plugins & SDK, credentials, daemon, version mismatch, port 18789 with openclaw-aware logic, disk, channel policy, env, exec approvals, …) |
-| **3** | Merge & triage | Severity labels, “vital signs” summary |
-| **4** | Treatment menu | **Interactive** — Auto / Quick / Full / Nuclear / Export / Quit |
-| **5** | Execute & verify | Repairs (e.g. disable broken plugins, `plugins.allow`, gateway restart for version skew), then re-check |
-
-Repairs include **automatic backup** before mutating config or extensions where applicable.
-
-### Related docs (not a numbered phase)
-
-- **[Tool Unlock Panel](https://xagent.icu/docs/tool-unlock-panel)** — walkthrough for `tools.exec`, browser, elevated, sandbox flags via `openclaw config`.
-- **[SOS landing / X share card](https://xagent.icu/sos)** — share-friendly page + Open Graph image for social previews.
-
----
-
-## The pain (why this exists)
-
-OpenClaw is powerful: gateway on **18789**, plugins, channels, exec tooling. Failure modes are easy to hit and hard to untangle — corrupt JSON5, gateway down, **plugin SDK / `api.config.get` errors**, **empty `plugins.allow`**, Discord **channel policy**, CLI vs gateway **version mismatch**, missing credentials, systemd/launchd daemon, port conflicts, and more.
-
-ClawICU turns recurring community pain into **check → explain → fix** loops instead of hours of manual grep and reinstall roulette.
-
----
-
-## Repository layout
-
-```
-clawicu/
-├── rescue/                    # Modular sources (checks/, repairs/, lib/)
-├── scripts/build-rescue.sh    # Bundles modules → dist/rescue.sh
-├── public/
-│   ├── rescue.sh              # Synced bundle (site + GitHub raw)
-│   │                          # Live site: https://xagent.icu/r → same script (server rewrite)
-│   ├── sos-card.svg / .png    # OG image for /sos (regenerate: npm run build:share-card)
-│   └── sos-card-render.html   # Generated by capture script (inline SVG for Chrome)
-├── src/                       # Next.js site (App Router, static export → out/)
-└── scripts/capture-sos-card.sh  # Headless Chrome → sos-card.png
-```
-
----
-
-## Development
+## Run it (copy once, use everywhere)
 
 ```bash
-git clone https://github.com/SonicBotMan/clawicu.git
-cd clawicu
-npm install
-npm run dev          # http://localhost:3000
-npm run build        # Static site → out/
-
-# After editing public/sos-card.svg (share card art)
-npm run build:share-card   # needs Google Chrome or Chromium (see script for CHROME_PATH)
+curl -fsSL https://xagent.icu/r | sh
 ```
 
-Rebuild the live bundle after changing `rescue/`:
+<details>
+<summary><strong>Alternatives</strong></summary>
+
+```bash
+# Explicit script URL (same bytes as /r)
+curl -fsSL https://xagent.icu/rescue.sh | sh
+
+# Save, inspect, then run
+curl -fsSL https://xagent.icu/r -o rescue.sh && chmod +x rescue.sh && ./rescue.sh
+```
+
+</details>
+
+**POSIX `sh`** · **stdin reattached to `/dev/tty`** so interactive menus work when piped · **Automatic backups** before risky repairs where applicable.
+
+---
+
+## What you get (at a glance)
+
+| | |
+|:---|:---|
+| **20 diagnostic modules** | Config (JSON5), gateway `/healthz`, plugins & SDK, credentials, daemon (systemd / launchd), version skew, port **18789** (skips OpenClaw’s own listener), disk, channel policy, env, exec approvals, … |
+| **6-phase protocol** | Bootstrap → crash-safe **doctor (~30s timeout)** → standalone checks → triage “vital signs” → **interactive** treatment menu → execute repairs + verify |
+| **Real repairs** | e.g. disable crashing plugins, fill **`plugins.allow`**, restart gateway for mismatch, tune channel policy paths — not just pretty logs |
+| **25 issue guides** | Deep pages on [xagent.icu/docs](https://xagent.icu/docs) — bookmark the one that matches your outage |
+| **ICU-themed site + SEO** | Landing, docs, sitemap, structured data — built with Next.js static export |
+| **Share “SOS”** | [xagent.icu/sos](https://xagent.icu/sos) + Open Graph card for quick **Share to X** from the homepage CTA |
+
+---
+
+## The six phases (flow)
+
+```mermaid
+flowchart LR
+  P0([0 Bootstrap]) --> P1([1 Doctor 30s cap])
+  P1 --> P2([2 Twenty checks])
+  P2 --> P3([3 Triage])
+  P3 --> P4([4 Menu])
+  P4 --> P5([5 Repair + verify])
+```
+
+| # | Phase | In one line |
+|---|--------|-------------|
+| 0 | **Bootstrap** | OS, install flavor, temp workspace, logging. |
+| 1 | **Doctor** | `openclaw doctor` with **timeout**; bad plugins can’t freeze the whole run. |
+| 2 | **Checks** | **20** independent modules — not “one command said OK”. |
+| 3 | **Triage** | Fatal / warn / info rolled into a single “patient chart”. |
+| 4 | **Menu** | Auto · Quick · Full · Nuclear · Export · Quit — **works via pipe**. |
+| 5 | **Execute** | Targeted fixes + **re-verify** after changes. |
+
+**Also on the site (not a numbered phase):** [Tool Unlock Panel](https://xagent.icu/docs/tool-unlock-panel) — exec / browser / elevated / sandbox via `openclaw config`.
+
+---
+
+## Under the hood (repo map)
+
+```
+rescue/                    # Modular checks + repairs + lib
+scripts/build-rescue.sh  # → dist/rescue.sh (inlined for curl | sh)
+public/rescue.sh         # Copy served by the static site
+src/                     # Next.js → static export to out/
+public/sos-card.svg      # Social share art → npm run build:share-card → .png
+```
+
+Rebuild bundle after editing `rescue/`:
 
 ```bash
 sh scripts/build-rescue.sh && cp dist/rescue.sh public/rescue.sh
@@ -128,29 +107,116 @@ sh scripts/build-rescue.sh && cp dist/rescue.sh public/rescue.sh
 
 ---
 
+## Hack on the website
+
+```bash
+git clone https://github.com/SonicBotMan/clawicu.git && cd clawicu
+npm install
+npm run dev              # http://localhost:3000
+npm run build            # → out/
+
+# Regenerate Twitter/OG PNG after editing public/sos-card.svg (needs Chrome/Chromium)
+npm run build:share-card
+```
+
+---
+
 ## Contributing
 
-Found a gap or a new failure mode? **[Open an issue](https://github.com/SonicBotMan/clawicu/issues)** or send a pull request.
+Spotted a new failure mode or a bad heuristic? **[Open an issue](https://github.com/SonicBotMan/clawicu/issues)** — PRs welcome.
 
 ---
 
-<p align="center">
+<div align="center">
 
-MIT License · [github.com/SonicBotMan/clawicu](https://github.com/SonicBotMan/clawicu)
+**MIT License** · Made for operators who ship fast and fix faster.
 
-**ClawICU — OpenClaw’s emergency room.**
+*ClawICU — when OpenClaw codes red, we go green.*
 
-</p>
+</div>
 
 ---
 
-# 中文版（摘要）
+<br/>
 
-**ClawICU** 是面向 [OpenClaw](https://github.com/openclaw/openclaw) 的**结构化急救脚本 + 文档站**：一条命令跑完 **6 个阶段**（Bootstrap → 带超时的 doctor → **20** 项独立检查 → 合并分诊 → **可交互**处置菜单 → 执行修复与验证），并配套 [xagent.icu](https://xagent.icu) 上的 **25** 篇故障指南。
+<div align="center">
 
-| 用法 | 命令 |
-|------|------|
-| 推荐一键 | `curl -fsSL https://xagent.icu/r \| sh` |
-| 显式脚本地址 | `curl -fsSL https://xagent.icu/rescue.sh \| sh` |
+# 中文版
 
-脚本版本见仓库内 `CLAWICU_VERSION`（当前 **0.2.0**）。分享求救卡片与 X 预览页：[xagent.icu/sos](https://xagent.icu/sos)。参与贡献请前往 [Issues](https://github.com/SonicBotMan/clawicu/issues)。
+### *你的 [OpenClaw](https://github.com/openclaw/openclaw) 网关「急救室」。*
+
+一条命令 · 二十项检查 · 六个阶段 · 把线上救回来。
+
+<br/>
+
+[**立即执行**](https://xagent.icu/r) · [**官网**](https://xagent.icu) · [**文档**](https://xagent.icu/docs) · [**救援流程**](https://xagent.icu/rescue) · [**SOS 分享**](https://xagent.icu/sos) · [**下载**](https://xagent.icu/download)
+
+</div>
+
+---
+
+## 为什么需要它
+
+网关昨天还好好的：今天可能是 **插件崩在 `api.config.get`**、**`openclaw doctor` 卡死**、Discord **策略导致消息全吞**、**18789 端口误报冲突**、**`plugins.allow` 为空**、CLI 与 Gateway **版本不一致**……你在凌晨两点对着 JSON5 和日志发呆。
+
+> **ClawICU 不替代 OpenClaw**，而是 **分诊 → 检查 → 处置 → 复核**：带 **超时** 的 doctor、**20** 个独立检查模块、**`curl | sh` 下仍可交互**的菜单，以及变更前的 **备份** 习惯。
+
+---
+
+## 一条命令
+
+```bash
+curl -fsSL https://xagent.icu/r | sh
+```
+
+也可使用 `https://xagent.icu/rescue.sh`（与 `/r` 同源）。脚本为 **POSIX sh**，会从 **`/dev/tty`** 读菜单，管道执行不会「秒选默认项」。
+
+---
+
+## 你能得到什么
+
+- **20** 个诊断模块：JSON5 配置、网关 **`/healthz`**、插件与 SDK、凭据、守护进程、版本不一致、端口（会识别是否为 OpenClaw 自身占用）、磁盘、频道策略等。  
+- **6** 个阶段：Bootstrap → **30 秒超时** doctor → 独立检查 → 分诊 → **交互式**处置方案 → 修复与验证。  
+- **25** 篇故障百科：[xagent.icu/docs](https://xagent.icu/docs)。  
+- **SOS 落地页** + 分享卡片：[xagent.icu/sos](https://xagent.icu/sos)（适合转发求助）。  
+- 官网与文档站：**Next.js 静态导出**，含 SEO 与站点地图。
+
+---
+
+## 六个阶段（与英文版一致）
+
+| # | 阶段 | 一句话 |
+|---|------|--------|
+| 0 | 引导 | 系统与安装方式、临时目录、日志。 |
+| 1 | Doctor | `openclaw doctor`，**超时保护**，输出写入后续阶段使用。 |
+| 2 | 检查 | **20** 个模块并行于 doctor 结论，交叉验证。 |
+| 3 | 分诊 | 致命 / 警告 / 信息汇总成「体征面板」。 |
+| 4 | 菜单 | 自动 / 快速 / 完整 / 核选项等，**管道下可交互**。 |
+| 5 | 执行 | 定向修复 + 再验证。 |
+
+工具权限相关另见：[工具解锁面板文档](https://xagent.icu/docs/tool-unlock-panel)。
+
+---
+
+## 开发与同步
+
+```bash
+git clone https://github.com/SonicBotMan/clawicu.git && cd clawicu
+npm install && npm run dev
+# 修改 rescue/ 后：
+sh scripts/build-rescue.sh && cp dist/rescue.sh public/rescue.sh
+# 修改分享卡 SVG 后（需本机 Chrome/Chromium）：
+npm run build:share-card
+```
+
+欢迎 **[提交 Issue](https://github.com/SonicBotMan/clawicu/issues)** 或 PR。
+
+---
+
+<div align="center">
+
+**MIT License** · 脚本当前版本 **0.2.0**（见 `CLAWICU_VERSION`）
+
+*OpenClaw 红灯时，我们帮你拉回绿区。*
+
+</div>
