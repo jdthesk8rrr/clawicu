@@ -86,57 +86,73 @@ phase_1_doctor() {
     return 0
 }
 
+# _do_check: run one check function, record result in RESULTS_FILE.
+# $1=fn_name (underscored, e.g. "config_schema")  - matches actual function name
+# $2=check_name (hyphenated, e.g. "config-schema") - written to RESULTS_FILE
+# $3=index  $4=total
+_do_check() {
+    local fn_name="$1" check_name="$2" idx="$3" total="$4"
+    check_result PROCESSING "[$idx/$total]" "$check_name"
+    SEVERITY="" MESSAGE="" DETAILS=""
+    local check_tmpfile="$CLAWICU_TMPDIR/check-out-$idx"
+    # Use 'if' to shield set -e from the non-zero return of passing checks.
+    local check_exit=1
+    if "check_${fn_name}" > "$check_tmpfile" 2>&1; then
+        check_exit=0
+    fi
+    rm -f "$check_tmpfile"
+    if [ "$check_exit" -eq 0 ]; then
+        printf "\r   ${C_YELLOW}[!]${C_NC} %-40s ${C_YELLOW}%s${C_NC}\n" "$check_name" "WARNING"
+        echo "WARN:${SEVERITY:-warn}:$check_name:${MESSAGE:-unknown issue}:${DETAILS:-}" >> "$RESULTS_FILE"
+    else
+        printf "\r   ${C_GREEN}[OK]${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name"
+        echo "PASS:$check_name" >> "$RESULTS_FILE"
+    fi
+    sleep 0.1
+}
+
 phase_2_checks() {
     phase_indicator 2 6 "Running Diagnostic Checks"
-    
+
     RESULTS_FILE="$CLAWICU_TMPDIR/check-results.txt"
     > "$RESULTS_FILE"
-    
+
     local check_count=0
-    local total_checks=0
-    total_checks=$(find "$SCRIPT_DIR/checks" -name "check-*.sh" 2>/dev/null | wc -l | tr -d ' ')
-    
-    for check in "$SCRIPT_DIR/checks"/check-*.sh; do
-        [ -f "$check" ] || continue
-        
-        check_count=$((check_count + 1))
-        . "$check"
-        check_name="$(basename "$check" .sh)"
-        check_name="${check_name#check-}"
-        
-        check_result PROCESSING "[$check_count/$total_checks]" "$check_name"
-        
-        # Reset shared variables before each check so stale values don't bleed through.
-        SEVERITY="" MESSAGE="" DETAILS=""
-        
-        # Run the check function directly (NOT in a subshell via $(...)) so that
-        # $SEVERITY / $MESSAGE / $DETAILS set inside the check are visible here.
-        # Redirect output to a temp file to keep the display clean.
-        local check_tmpfile="$CLAWICU_TMPDIR/check-out-$check_count"
-        check_"$check_name" > "$check_tmpfile" 2>&1
-        local check_exit=$?
-        rm -f "$check_tmpfile"
-        
-        if [ "$check_exit" -eq 0 ]; then
-            # Convention: exit 0 means a problem was found; check sets SEVERITY/MESSAGE/DETAILS
-            printf "\r   ${C_YELLOW}[!]${C_NC} %-40s ${C_YELLOW}%s${C_NC}\n" "$check_name" "WARNING"
-            echo "WARN:${SEVERITY:-warn}:$check_name:${MESSAGE:-unknown issue}:${DETAILS:-}" >> "$RESULTS_FILE"
-        else
-            printf "\r   ${C_GREEN}[OK]${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name"
-            echo "PASS:$check_name" >> "$RESULTS_FILE"
-        fi
-        
-        sleep 0.1
-    done
-    
+
+    printf "\n"
+
+    # Bundled mode: _CLAWICU_CHECK_FNS is injected by build-rescue.sh.
+    # Dev mode:     _CLAWICU_CHECK_FNS is empty; discover scripts from disk instead.
+    if [ -n "${_CLAWICU_CHECK_FNS:-}" ]; then
+        local total_checks
+        total_checks=$(printf '%s\n' $_CLAWICU_CHECK_FNS | wc -l | tr -d ' ')
+        for fn_name in $_CLAWICU_CHECK_FNS; do
+            check_count=$((check_count + 1))
+            local check_name
+            check_name="$(printf '%s' "$fn_name" | tr '_' '-')"
+            _do_check "$fn_name" "$check_name" "$check_count" "$total_checks"
+        done
+    else
+        local total_checks
+        total_checks=$(ls "$SCRIPT_DIR/checks"/check-*.sh 2>/dev/null | wc -l | tr -d ' ')
+        for check in "$SCRIPT_DIR/checks"/check-*.sh; do
+            [ -f "$check" ] || continue
+            check_count=$((check_count + 1))
+            . "$check"
+            local check_name fn_name
+            check_name="$(basename "$check" .sh)"; check_name="${check_name#check-}"
+            fn_name="$(printf '%s' "$check_name" | tr '-' '_')"
+            _do_check "$fn_name" "$check_name" "$check_count" "$total_checks"
+        done
+    fi
+
     printf "\n"
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
-    
-    local fail_count
+
+    local fail_count warn_count
     fail_count="$(grep "^FAIL:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
-    local warn_count
     warn_count="$(grep "^WARN:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
-    
+
     if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
         printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
         [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
@@ -262,34 +278,51 @@ phase_4_menu() {
     esac
 }
 
+# _load_repair: load a repair module so that execute() is defined in current scope.
+# Tries file source first (dev mode), then direct function call (bundled mode).
+# Returns 0 if the repair module was loaded, 1 if not found.
+_load_repair() {
+    local repair_fn="$1"   # e.g. "repair_plugins"
+    local repair_file="$2" # e.g. "/path/to/repair-plugins.sh" (may not exist)
+    if [ -f "$repair_file" ]; then
+        . "$repair_file"
+        "$repair_fn"   # defines execute() in current scope
+        return 0
+    fi
+    # Bundled mode: function is already defined globally; call it to define execute()
+    # 'type' output contains "function" or "shell function" when defined.
+    if type "$repair_fn" 2>&1 | grep -q "function"; then
+        "$repair_fn"
+        return 0
+    fi
+    return 1
+}
+
 phase_5_execute() {
     phase_indicator 5 6 "Executing Repairs"
-    
+
     local choice="${CLAWICU_CHOICE:-a}"
-    
-    # Skip if user chose export-only or quit
+
     case "$choice" in
         q|Q|s|S) return 0 ;;
     esac
-    
+
     if [ ! -f "$RESULTS_FILE" ]; then
         log_warn "No results file found, skipping repairs"
         return 0
     fi
-    
+
     printf "\n"
-    
+
     local repaired=0
     local failed=0
     local skipped=0
-    
-    # For nuclear option (choice=3), run repair-nuclear directly instead of per-issue
+
+    # Nuclear option: bypass per-issue loop and call repair_nuclear directly.
     if [ "$choice" = "3" ]; then
+        check_result PROCESSING "Repair" "nuclear-reset"
         local nscript="$SCRIPT_DIR/repairs/repair-nuclear.sh"
-        if [ -f "$nscript" ]; then
-            check_result PROCESSING "Repair" "nuclear-reset"
-            . "$nscript"
-            repair_nuclear
+        if _load_repair "repair_nuclear" "$nscript"; then
             if execute; then
                 check_result OK "Repaired" "nuclear-reset"
                 repaired=$((repaired + 1))
@@ -297,55 +330,51 @@ phase_5_execute() {
                 check_result FAIL "Repair Failed" "nuclear-reset"
                 failed=$((failed + 1))
             fi
+        else
+            check_result FAIL "Repair Failed" "nuclear-reset (module missing)"
+            failed=$((failed + 1))
         fi
     else
-        # For each identified issue, find and run the matching repair module.
-        # Results file format: WARN:<severity>:<check_name>:<message>:<details>
-        # check_name "config" -> repairs/repair-config.sh -> function repair_config
+        # For each identified issue, load and run the matching repair module.
+        # RESULTS_FILE format: WARN:<severity>:<check_name>:<message>:<details>
+        # check_name "plugins" -> repair fn "repair_plugins"
         while IFS=: read -r status severity check_name _msg _details; do
             [ "$status" = "WARN" ] || continue
             [ -z "$check_name" ] && continue
-            
-            local repair_script="$SCRIPT_DIR/repairs/repair-${check_name}.sh"
-            
-            if [ ! -f "$repair_script" ]; then
-                log_debug "No repair module for: $check_name"
-                skipped=$((skipped + 1))
-                continue
-            fi
-            
-            # In quick-fix mode (choice=1), skip repairs for non-fatal severities
+
+            # In quick-fix mode, skip non-fatal issues
             if [ "$choice" = "1" ] && [ "$severity" != "fatal" ]; then
-                log_debug "Skipping non-fatal repair in quick-fix mode: $check_name"
                 skipped=$((skipped + 1))
                 continue
             fi
-            
+
+            local repair_fn repair_file
+            repair_fn="repair_$(printf '%s' "$check_name" | tr '-' '_')"
+            repair_file="$SCRIPT_DIR/repairs/repair-${check_name}.sh"
+
             check_result PROCESSING "Repairing" "$check_name"
-            
-            # Source the repair script and call its setup function to define
-            # the inner execute() / describe() / dry_run() helpers.
-            . "$repair_script"
-            local setup_fn
-            setup_fn="$(basename "$repair_script" .sh | tr '-' '_')"
-            "$setup_fn"   # defines execute(), describe(), etc. in current shell
-            
-            if execute; then
-                check_result OK "Repaired" "$check_name"
-                repaired=$((repaired + 1))
+
+            if _load_repair "$repair_fn" "$repair_file"; then
+                if execute; then
+                    check_result OK "Repaired" "$check_name"
+                    repaired=$((repaired + 1))
+                else
+                    check_result FAIL "Repair Failed" "$check_name"
+                    failed=$((failed + 1))
+                fi
             else
-                check_result FAIL "Repair Failed" "$check_name"
-                failed=$((failed + 1))
+                printf "   ${C_DIM}- No repair module for: %s${C_NC}\n" "$check_name"
+                skipped=$((skipped + 1))
             fi
         done < "$RESULTS_FILE"
     fi
-    
+
     printf "\n"
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
-    
+
     [ "$repaired" -gt 0 ] && printf "   ${C_GREEN}[OK]${C_NC} Repaired:  ${C_BOLD}%d${C_NC} module(s)\n" "$repaired"
     [ "$failed"   -gt 0 ] && printf "   ${C_RED}[!!]${C_NC} Failed:    ${C_BOLD}%d${C_NC} module(s)\n" "$failed"
-    [ "$skipped"  -gt 0 ] && printf "   ${C_DIM}- Skipped:  %d module(s) (no repair available or filtered by mode)${C_NC}\n" "$skipped"
+    [ "$skipped"  -gt 0 ] && printf "   ${C_DIM}- Skipped:  %d module(s) (no repair module or filtered by mode)${C_NC}\n" "$skipped"
     printf "\n"
 }
 

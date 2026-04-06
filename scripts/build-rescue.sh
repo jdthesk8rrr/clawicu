@@ -67,6 +67,24 @@ for repair in "$RESCUE_DIR/repairs"/repair-*.sh; do
     inline_file "$repair"
 done
 
+# Generate function dispatch lists so the bundled script can call check/repair
+# functions directly without needing files on disk (curl | sh mode).
+echo "" >> "$OUTPUT_FILE"
+echo "# === BUNDLED DISPATCH LISTS ===" >> "$OUTPUT_FILE"
+
+CHECK_FNS=""
+for check in "$RESCUE_DIR/checks"/check-*.sh; do
+    fn="$(basename "$check" .sh | sed 's/^check-//' | tr '-' '_')"
+    CHECK_FNS="${CHECK_FNS:+$CHECK_FNS }$fn"
+done
+REPAIR_FNS=""
+for repair in "$RESCUE_DIR/repairs"/repair-*.sh; do
+    fn="$(basename "$repair" .sh | sed 's/^repair-//' | tr '-' '_')"
+    REPAIR_FNS="${REPAIR_FNS:+$REPAIR_FNS }$fn"
+done
+printf '_CLAWICU_CHECK_FNS="%s"\n' "$CHECK_FNS"  >> "$OUTPUT_FILE"
+printf '_CLAWICU_REPAIR_FNS="%s"\n' "$REPAIR_FNS" >> "$OUTPUT_FILE"
+
 # Inline main rescue.sh (without shebang and lib sourcing lines)
 echo "" >> "$OUTPUT_FILE"
 echo "# === MAIN ORCHESTRATOR ===" >> "$OUTPUT_FILE"
