@@ -12,24 +12,24 @@ CLAWICU_TMPDIR="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
 
 # --- lib/bootstrap.sh ---
 # bootstrap.sh - OS/shell detection, install method detection, temp dir setup
-
-set -e
+# NOTE: Do NOT put 'set -e' here - the bundle inlines all modules into one
+# script and set -e from individual modules causes premature exits.
 
 # Detect OS
 detect_os() {
     case "$(uname -s)" in
         Darwin*) echo "macos" ;;
-        Linux*) echo "linux" ;;
-        *)      echo "unknown" ;;
+        Linux*)  echo "linux" ;;
+        *)       echo "unknown" ;;
     esac
 }
 
 # Detect architecture
 detect_arch() {
     case "$(uname -m)" in
-        x86_64)  echo "x86_64" ;;
+        x86_64)        echo "x86_64" ;;
         arm64|aarch64) echo "arm64" ;;
-        *)       echo "unknown" ;;
+        *)             echo "unknown" ;;
     esac
 }
 
@@ -58,7 +58,6 @@ detect_install_method() {
 
     # Check if openclaw is installed via npm
     if command -v openclaw >/dev/null 2>&1; then
-        # Check if it's a global npm install
         if [ -d "$HOME/.npm" ] || [ -d "/usr/local/lib/node_modules/openclaw" ]; then
             echo "npm-global"
             return
@@ -82,24 +81,23 @@ detect_install_method() {
     echo "unknown"
 }
 
-# Create temp working directory with trap cleanup
-bootstrap_init() {
-    local work_dir="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
-    mkdir -p "$work_dir"
-
-    # Set trap to cleanup on exit
-    trap "rm -rf $work_dir" EXIT INT TERM
-
-    echo "$work_dir"
-}
-
-# Main bootstrap
+# Main bootstrap - creates the temp working directory in the CURRENT shell
+# so the trap and mkdir both take effect in the parent process (not a subshell).
 bootstrap() {
     CLAWICU_OS="$(detect_os)"
     CLAWICU_ARCH="$(detect_arch)"
     CLAWICU_SHELL="$(detect_shell)"
     CLAWICU_INSTALL_METHOD="$(detect_install_method)"
-    CLAWICU_TMPDIR="$(bootstrap_init)"
+
+    # Determine and create the temp dir directly here (NOT via $(...) subshell).
+    # Using $(...) would run the mkdir inside a subshell whose EXIT trap would
+    # immediately delete the directory before the parent shell can use it.
+    CLAWICU_TMPDIR="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
+    mkdir -p "$CLAWICU_TMPDIR"
+
+    # Register cleanup trap in the current (parent) shell
+    # shellcheck disable=SC2064
+    trap "rm -rf '$CLAWICU_TMPDIR'" EXIT INT TERM
 
     export CLAWICU_OS CLAWICU_ARCH CLAWICU_SHELL CLAWICU_INSTALL_METHOD CLAWICU_TMPDIR
 }
@@ -107,7 +105,6 @@ bootstrap() {
 # --- lib/log.sh ---
 # log.sh - 4-level logging (FATAL/WARN/INFO/DEBUG), colors, file output
 
-set -e
 
 CLAWICU_LOG_LEVEL="${CLAWICU_LOG_LEVEL:-INFO}"
 CLAWICU_LOG_FILE="${CLAWICU_LOG_FILE:-}"
@@ -1230,7 +1227,6 @@ check_version() {
 # The preferred method is 'openclaw config set <path> <value>'.
 # Python3 / Node.js are used as fallbacks when the binary is unavailable.
 
-set -e
 
 
 repair_config_field() {
@@ -1440,7 +1436,6 @@ fs.writeFileSync(cfgPath, JSON.stringify(obj, null, 2));
 # --- repair-config.sh ---
 # repair-config.sh - Restore OpenClaw config from a backup
 
-set -e
 
 # Source dependencies
 
@@ -1613,7 +1608,6 @@ json.loads(txt)
 # --- repair-credentials.sh ---
 # repair-credentials.sh - Detect and prompt for missing provider credentials
 
-set -e
 
 # Source dependencies
 
@@ -1778,7 +1772,6 @@ PROVIDERS
 # This repair script uses 'openclaw daemon' subcommands to reinstall the service
 # correctly, rather than generating plist/unit files manually.
 
-set -e
 
 
 repair_daemon() {
@@ -1911,7 +1904,6 @@ repair_daemon() {
 # --- repair-docker.sh ---
 # repair-docker.sh - Restart and recreate Docker container and volumes
 
-set -e
 
 # Source dependencies
 
@@ -2190,7 +2182,6 @@ repair_docker() {
 # --- repair-downgrade.sh ---
 # repair-downgrade.sh - Downgrade OpenClaw to a stable version
 
-set -e
 
 # Source dependencies
 
@@ -2357,7 +2348,6 @@ repair_downgrade() {
 # --- repair-gateway.sh ---
 # repair-gateway.sh - Restart the OpenClaw gateway process
 
-set -e
 
 
 repair_gateway() {
@@ -2529,7 +2519,6 @@ repair_gateway() {
 # --- repair-nuclear.sh ---
 # repair-nuclear.sh - Full state reset preserving credentials (HIGH RISK)
 
-set -e
 
 # Source dependencies
 
@@ -2713,7 +2702,6 @@ DEFCONFIG
 # --- repair-plugins.sh ---
 # repair-plugins.sh - Detect and disable broken plugins
 
-set -e
 
 # Source dependencies
 
@@ -2846,7 +2834,6 @@ repair_plugins() {
 # --- repair-port.sh ---
 # repair-port.sh - Free port 18789 or reconfigure gateway port
 
-set -e
 
 # Source dependencies
 
@@ -3111,7 +3098,6 @@ repair_port() {
 # --- repair-reinstall.sh ---
 # repair-reinstall.sh - Complete clean reinstall of OpenClaw (HIGH RISK)
 
-set -e
 
 # Source dependencies
 
@@ -3321,7 +3307,6 @@ repair_reinstall() {
 # --- repair-sessions.sh ---
 # repair-sessions.sh - Remove corrupted session files by moving them aside
 
-set -e
 
 # Source dependencies
 
@@ -3465,7 +3450,6 @@ repair_sessions() {
 }
 
 # === MAIN ORCHESTRATOR ===
-set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAWICU_VERSION="0.1.0"

@@ -26,6 +26,17 @@ CLAWICU_VERSION="0.1.0"
 CLAWICU_TMPDIR="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
 HEADER
 
+# Helper: inline a file stripping shebang, source lines, and bare 'set -e'.
+# In a bundled script every module's 'set -e' stacks dangerously; the single
+# 'set -e' in the bundle header is enough.
+inline_file() {
+    local file="$1"
+    grep -v '^#!/'   "$file" \
+        | grep -v '^\. "' \
+        | grep -v '^set -e' \
+        >> "$OUTPUT_FILE" || true
+}
+
 # Inline lib modules
 echo "" >> "$OUTPUT_FILE"
 echo "# === LIBRARIES ===" >> "$OUTPUT_FILE"
@@ -33,7 +44,7 @@ echo "# === LIBRARIES ===" >> "$OUTPUT_FILE"
 for lib in bootstrap log ui backup state verify; do
     echo "" >> "$OUTPUT_FILE"
     echo "# --- lib/$lib.sh ---" >> "$OUTPUT_FILE"
-    grep -v '^#!/' "$RESCUE_DIR/lib/$lib.sh" >> "$OUTPUT_FILE" || true
+    inline_file "$RESCUE_DIR/lib/$lib.sh"
 done
 
 # Inline check modules
@@ -43,8 +54,7 @@ echo "# === CHECK MODULES ===" >> "$OUTPUT_FILE"
 for check in "$RESCUE_DIR/checks"/check-*.sh; do
     echo "" >> "$OUTPUT_FILE"
     echo "# --- $(basename "$check") ---" >> "$OUTPUT_FILE"
-    # Strip shebang and source/dot commands (libs are already inlined above)
-    grep -v '^#!/' "$check" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
+    inline_file "$check"
 done
 
 # Inline repair modules
@@ -54,14 +64,13 @@ echo "# === REPAIR MODULES ===" >> "$OUTPUT_FILE"
 for repair in "$RESCUE_DIR/repairs"/repair-*.sh; do
     echo "" >> "$OUTPUT_FILE"
     echo "# --- $(basename "$repair") ---" >> "$OUTPUT_FILE"
-    # Strip shebang and source/dot commands (libs are already inlined above)
-    grep -v '^#!/' "$repair" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
+    inline_file "$repair"
 done
 
 # Inline main rescue.sh (without shebang and lib sourcing lines)
 echo "" >> "$OUTPUT_FILE"
 echo "# === MAIN ORCHESTRATOR ===" >> "$OUTPUT_FILE"
-grep -v '^#!/' "$RESCUE_DIR/rescue.sh" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
+inline_file "$RESCUE_DIR/rescue.sh"
 
 # Make executable
 chmod +x "$OUTPUT_FILE"
