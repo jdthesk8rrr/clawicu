@@ -63,12 +63,28 @@ phase_1_doctor() {
     printf "\n"
 
     # Save output to temp file so check-plugins.sh can reuse it without running doctor twice.
-    # Use 'if' to shield set -e: openclaw doctor exits non-zero when it finds issues,
-    # which would otherwise kill the entire rescue script.
+    # Run with a 30s timeout: a broken plugin (e.g. api.config.get crash) can cause
+    # 'openclaw doctor' to hang indefinitely. Use 'if' to shield set -e.
     CLAWICU_DOCTOR_OUT="$CLAWICU_TMPDIR/doctor-output.txt"
     local doctor_exit=0
-    if ! openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1; then
-        doctor_exit=$?
+
+    # Run openclaw doctor in the background and manually wait with a timeout
+    # (portable: 'timeout' is not available on all systems/macOS by default)
+    OPENCLAW_NO_RESPAWN=1 openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1 &
+    local _doc_pid=$!
+    local _waited=0
+    while kill -0 "$_doc_pid" 2>/dev/null && [ "$_waited" -lt 30 ]; do
+        sleep 1
+        _waited=$((_waited + 1))
+    done
+    if kill -0 "$_doc_pid" 2>/dev/null; then
+        # Still running after 30s - kill it and note timeout
+        kill "$_doc_pid" 2>/dev/null || true
+        wait "$_doc_pid" 2>/dev/null || true
+        doctor_exit=124
+        printf "   ${C_YELLOW}[!]${C_NC} openclaw doctor timed out after 30s (plugin crash suspected)\n"
+    else
+        wait "$_doc_pid" 2>/dev/null && doctor_exit=0 || doctor_exit=$?
     fi
 
     # Detect real errors: unhandled promise rejections, TypeError, etc.
