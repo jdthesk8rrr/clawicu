@@ -84,7 +84,7 @@ repair_port() {
         info=$(_process_info "$pid")
         log_info "Process using port: $info"
 
-        printf "Kill this process? [y/N]: " >&2
+        printf "   Kill this process? [y/N]: "
         read -r answer
 
         case "$answer" in
