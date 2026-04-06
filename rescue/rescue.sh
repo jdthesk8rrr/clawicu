@@ -63,9 +63,13 @@ phase_1_doctor() {
     printf "\n"
 
     # Save output to temp file so check-plugins.sh can reuse it without running doctor twice.
+    # Use 'if' to shield set -e: openclaw doctor exits non-zero when it finds issues,
+    # which would otherwise kill the entire rescue script.
     CLAWICU_DOCTOR_OUT="$CLAWICU_TMPDIR/doctor-output.txt"
-    openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1
-    local doctor_exit=$?
+    local doctor_exit=0
+    if ! openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1; then
+        doctor_exit=$?
+    fi
 
     # Detect real errors: unhandled promise rejections, TypeError, etc.
     local has_fatal=0
@@ -149,13 +153,15 @@ phase_2_checks() {
     printf "\n"
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
 
+    # RESULTS_FILE uses WARN:fatal: for fatal issues and WARN:warn: for warnings.
+    # (Nothing writes FAIL: - that was a legacy mismatch with ^FAIL:)
     local fail_count warn_count
-    fail_count="$(grep "^FAIL:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
-    warn_count="$(grep "^WARN:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    fail_count="$(grep "^WARN:fatal:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    warn_count="$(grep "^WARN:warn:\|^WARN:info:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
 
     if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
-        printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
-        [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
+        [ "$fail_count" -gt 0 ] && printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
+        [ "$warn_count" -gt 0 ] && printf "   ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
         printf "\n"
     else
         printf "   ${C_GREEN}[OK] All Checks Passed${C_NC}\n"

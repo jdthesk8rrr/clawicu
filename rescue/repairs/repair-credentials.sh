@@ -155,6 +155,12 @@ PROVIDERS
             return 1
         fi
 
+        # If credentials were missing but the user skipped all prompts, report failure
+        if [ "$missing_count" -gt 0 ] && [ "$fixed_count" -eq 0 ]; then
+            log_warn "No credentials were saved (all prompts skipped)"
+            return 1
+        fi
+
         log_info "Credentials repair completed"
         return 0
     }

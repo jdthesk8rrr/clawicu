@@ -46,7 +46,9 @@ repair_port() {
         # Try ss (Linux)
         if command -v ss >/dev/null 2>&1; then
             local result
-            result=$(ss -tlnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1 || true)
+            # POSIX-safe: grep -oP is GNU-only; use grep -o + cut instead
+            result=$(ss -tlnp 2>/dev/null | grep ":${port}[[:space:]]" \
+                | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2 || true)
             if [ -n "$result" ]; then
                 echo "$result"
                 return 0

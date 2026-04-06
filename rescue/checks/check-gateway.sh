@@ -23,7 +23,7 @@ check_gateway() {
     esac
     
     if command -v curl >/dev/null 2>&1; then
-        if curl -sf "http://localhost:$port/health" >/dev/null 2>&1; then
+        if curl -sf "http://localhost:$port/healthz" >/dev/null 2>&1; then
             return 1
         fi
     fi

@@ -14,11 +14,24 @@ check_daemon() {
             fi
             ;;
         Linux*)
-            # Check for systemd user unit
-            local unit="$HOME/.config/systemd/user/openclaw.service"
-            if [ ! -f "$unit" ]; then
+            # OpenClaw installs a user-level service named 'openclaw-gateway'
+            local unit_dir="$HOME/.config/systemd/user"
+            local unit=""
+            # Check both possible unit file names
+            if [ -f "$unit_dir/openclaw-gateway.service" ]; then
+                unit="$unit_dir/openclaw-gateway.service"
+            elif [ -f "$unit_dir/openclaw.service" ]; then
+                unit="$unit_dir/openclaw.service"
+            fi
+            # Also check via systemctl (unit may be installed system-wide)
+            if [ -z "$unit" ] && command -v systemctl >/dev/null 2>&1; then
+                if systemctl --user list-unit-files "openclaw*.service" 2>/dev/null | grep -q "openclaw"; then
+                    return 1  # Unit found via systemctl
+                fi
+            fi
+            if [ -z "$unit" ]; then
                 MESSAGE="systemd unit not found for OpenClaw daemon"
-                DETAILS="Expected at: $unit"
+                DETAILS="Run: openclaw daemon install"
                 return 0
             fi
             ;;

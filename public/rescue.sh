@@ -877,7 +877,7 @@ JSON.parse(txt);
 check_credentials() {
     SEVERITY="warn"
     
-    local creds_dir="${OPENCLAW_CREDS_DIR:-$HOME/.openclaw/credentials}"
+    local creds_dir="${OPENCLAW_CRED_DIR:-$HOME/.openclaw/credentials}"
     
     if [ ! -d "$creds_dir" ]; then
         MESSAGE="Credentials directory not found: $creds_dir"
@@ -919,11 +919,24 @@ check_daemon() {
             fi
             ;;
         Linux*)
-            # Check for systemd user unit
-            local unit="$HOME/.config/systemd/user/openclaw.service"
-            if [ ! -f "$unit" ]; then
+            # OpenClaw installs a user-level service named 'openclaw-gateway'
+            local unit_dir="$HOME/.config/systemd/user"
+            local unit=""
+            # Check both possible unit file names
+            if [ -f "$unit_dir/openclaw-gateway.service" ]; then
+                unit="$unit_dir/openclaw-gateway.service"
+            elif [ -f "$unit_dir/openclaw.service" ]; then
+                unit="$unit_dir/openclaw.service"
+            fi
+            # Also check via systemctl (unit may be installed system-wide)
+            if [ -z "$unit" ] && command -v systemctl >/dev/null 2>&1; then
+                if systemctl --user list-unit-files "openclaw*.service" 2>/dev/null | grep -q "openclaw"; then
+                    return 1  # Unit found via systemctl
+                fi
+            fi
+            if [ -z "$unit" ]; then
                 MESSAGE="systemd unit not found for OpenClaw daemon"
-                DETAILS="Expected at: $unit"
+                DETAILS="Run: openclaw daemon install"
                 return 0
             fi
             ;;
@@ -1057,7 +1070,7 @@ check_gateway() {
     esac
     
     if command -v curl >/dev/null 2>&1; then
-        if curl -sf "http://localhost:$port/health" >/dev/null 2>&1; then
+        if curl -sf "http://localhost:$port/healthz" >/dev/null 2>&1; then
             return 1
         fi
     fi
@@ -1360,10 +1373,24 @@ check_port() {
             ;;
         Linux*)
             if command -v ss >/dev/null 2>&1; then
-                if ss -tuln 2>/dev/null | grep -q ":$port "; then
-                    local pid="$(ss -tuln 2>/dev/null | grep ":$port " | awk '{print $6}' | head -1)"
+                if ss -tuln 2>/dev/null | grep -q ":${port}[[:space:]]"; then
+                    # ss -tulnp (with -p) shows process names, but requires the process
+                    # to belong to the current user. Extract PID with POSIX-safe grep.
+                    local proc_info
+                    proc_info="$(ss -tulnp 2>/dev/null | grep ":${port}[[:space:]]" \
+                        | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)"
+                    if [ -z "$proc_info" ]; then
+                        proc_info="$(lsof -ti ":$port" 2>/dev/null | head -1)"
+                    fi
                     MESSAGE="Port $port is already in use"
-                    DETAILS="Process: $pid"
+                    DETAILS="${proc_info:+PID $proc_info is using the port. }Run: ss -tulnp | grep :$port"
+                    return 0
+                fi
+            elif command -v lsof >/dev/null 2>&1; then
+                local listener
+                listener="$(lsof -i ":$port" -sTCP:LISTEN 2>/dev/null | tail -1 | awk '{print $1}')"
+                if [ -n "$listener" ]; then
+                    MESSAGE="Port $port is already in use by: $listener"
                     return 0
                 fi
             fi
@@ -2119,6 +2146,12 @@ PROVIDERS
         if [ -n "$failed_providers" ]; then
             log_warn "Some credentials could not be verified:$failed_providers"
             state_rollback
+            return 1
+        fi
+
+        # If credentials were missing but the user skipped all prompts, report failure
+        if [ "$missing_count" -gt 0 ] && [ "$fixed_count" -eq 0 ]; then
+            log_warn "No credentials were saved (all prompts skipped)"
             return 1
         fi
 
@@ -3580,7 +3613,9 @@ repair_port() {
         # Try ss (Linux)
         if command -v ss >/dev/null 2>&1; then
             local result
-            result=$(ss -tlnp "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1 || true)
+            # POSIX-safe: grep -oP is GNU-only; use grep -o + cut instead
+            result=$(ss -tlnp 2>/dev/null | grep ":${port}[[:space:]]" \
+                | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2 || true)
             if [ -n "$result" ]; then
                 echo "$result"
                 return 0
@@ -4321,9 +4356,13 @@ phase_1_doctor() {
     printf "\n"
 
     # Save output to temp file so check-plugins.sh can reuse it without running doctor twice.
+    # Use 'if' to shield set -e: openclaw doctor exits non-zero when it finds issues,
+    # which would otherwise kill the entire rescue script.
     CLAWICU_DOCTOR_OUT="$CLAWICU_TMPDIR/doctor-output.txt"
-    openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1
-    local doctor_exit=$?
+    local doctor_exit=0
+    if ! openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1; then
+        doctor_exit=$?
+    fi
 
     # Detect real errors: unhandled promise rejections, TypeError, etc.
     local has_fatal=0
@@ -4407,13 +4446,15 @@ phase_2_checks() {
     printf "\n"
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
 
+    # RESULTS_FILE uses WARN:fatal: for fatal issues and WARN:warn: for warnings.
+    # (Nothing writes FAIL: - that was a legacy mismatch with ^FAIL:)
     local fail_count warn_count
-    fail_count="$(grep "^FAIL:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
-    warn_count="$(grep "^WARN:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    fail_count="$(grep "^WARN:fatal:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    warn_count="$(grep "^WARN:warn:\|^WARN:info:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
 
     if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
-        printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
-        [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
+        [ "$fail_count" -gt 0 ] && printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
+        [ "$warn_count" -gt 0 ] && printf "   ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
         printf "\n"
     else
         printf "   ${C_GREEN}[OK] All Checks Passed${C_NC}\n"

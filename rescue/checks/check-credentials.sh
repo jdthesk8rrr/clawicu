@@ -3,7 +3,7 @@
 check_credentials() {
     SEVERITY="warn"
     
-    local creds_dir="${OPENCLAW_CREDS_DIR:-$HOME/.openclaw/credentials}"
+    local creds_dir="${OPENCLAW_CRED_DIR:-$HOME/.openclaw/credentials}"
     
     if [ ! -d "$creds_dir" ]; then
         MESSAGE="Credentials directory not found: $creds_dir"
