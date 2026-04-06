@@ -209,7 +209,7 @@ curl -fsSL https://xagent.icu/r | sh
 |:---:|:---:|
 | [![官网](docs/readme/website-home.png)](https://xagent.icu) | [![文档](docs/readme/website-docs.png)](https://xagent.icu/docs) |
 
-**终端救援示意**（风格与真实输出一致，便于 README 展示）：
+**终端救援示意**：
 
 <img src="docs/readme/terminal-rescue.png" alt="ClawICU 终端救援示意" width="920" />
 
