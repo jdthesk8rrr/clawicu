@@ -123,7 +123,7 @@ repair_docker() {
         local volumes="$5"
 
         # Build the argument list using positional parameters so each argument
-        # is passed as a distinct word — avoids word-splitting on paths with spaces.
+        # is passed as a distinct word - avoids word-splitting on paths with spaces.
         set -- -d --name "$name" -p "${host_port}:18789"
 
         # Add volume mounts if present

@@ -145,13 +145,13 @@ json.loads(txt)
         fi
 
         # Save a direct copy of the current config file for rollback.
-        # backup_create() produces a tar.gz of the state dir — cannot be
+        # backup_create() produces a tar.gz of the state dir - cannot be
         # cp'd directly back as a config file, so we keep a separate snapshot.
         local config_snapshot="${config_file}.clawicu-$(date '+%Y%m%d-%H%M%S').bak"
         cp "$config_file" "$config_snapshot"
         log_info "Config snapshot saved: $config_snapshot"
 
-        # Full state backup (discard path — not used for cp rollback)
+        # Full state backup (discard path - not used for cp rollback)
         backup_create "repair-config" >/dev/null
         state_push "repair-config"
 

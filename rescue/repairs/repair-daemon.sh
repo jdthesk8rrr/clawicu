@@ -3,7 +3,7 @@
 #
 # OpenClaw installs a user-level daemon via 'openclaw daemon install':
 #   macOS:  LaunchAgent plist under ~/Library/LaunchAgents/
-#   Linux:  systemd user service (~/.config/systemd/user/) — NO root required
+#   Linux:  systemd user service (~/.config/systemd/user/) - NO root required
 #
 # This repair script uses 'openclaw daemon' subcommands to reinstall the service
 # correctly, rather than generating plist/unit files manually.
@@ -24,7 +24,7 @@ repair_daemon() {
 
     dry_run() {
         echo "What would happen:"
-        echo "  - Detect OS (macOS → launchd LaunchAgent, Linux → systemd user service)"
+        echo "  - Detect OS (macOS -> launchd LaunchAgent, Linux -> systemd user service)"
         echo "  - Locate the openclaw binary"
         echo "  - Stop and uninstall any existing service"
         echo "  - Run 'openclaw daemon install' to install fresh service"

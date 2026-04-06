@@ -115,7 +115,7 @@ repair_credentials() {
         state_push "repair-credentials"
 
         # Use here-doc instead of pipe so the while loop runs in the current
-        # shell — a pipe would create a subshell and variable updates
+        # shell - a pipe would create a subshell and variable updates
         # (missing_count, fixed_count, failed_providers) would be lost.
         while IFS=: read -r provider env_var; do
             [ -z "$provider" ] && continue

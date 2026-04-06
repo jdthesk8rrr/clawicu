@@ -16,7 +16,7 @@ check_config() {
     fi
 
     if [ ! -f "$config_path" ]; then
-        # Missing config is not fatal — OpenClaw uses safe defaults when absent
+        # Missing config is not fatal - OpenClaw uses safe defaults when absent
         SEVERITY="warn"
         MESSAGE="Config file not found: $config_path"
         DETAILS="OpenClaw will use built-in defaults. Run 'openclaw onboard' to create one."

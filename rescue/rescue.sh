@@ -35,20 +35,20 @@ done
 phase_0_bootstrap() {
     icu_header "$CLAWICU_VERSION"
     
-    printf "   ${C_CYAN}◆${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
-    printf "   ${C_CYAN}◆${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$CLAWICU_VERSION"
+    printf "   ${C_CYAN}*${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
+    printf "   ${C_CYAN}*${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$CLAWICU_VERSION"
     printf "\n"
     
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
     
     rescue_announce START "Initializing rescue protocol..."
     
     if ! command -v curl >/dev/null 2>&1; then
-        printf "\n   ${C_RED}✗ FATAL: curl is required but not found${C_NC}\n"
+        printf "\n   ${C_RED}[!!] FATAL: curl is required but not found${C_NC}\n"
         exit 1
     fi
     
-    printf "   ${C_GREEN}✓${C_NC} curl .............. ${C_GREEN}READY${C_NC}\n"
+    printf "   ${C_GREEN}[OK]${C_NC} curl .............. ${C_GREEN}READY${C_NC}\n"
 }
 
 phase_1_doctor() {
@@ -108,10 +108,10 @@ phase_2_checks() {
         
         if [ "$check_exit" -eq 0 ]; then
             # Convention: exit 0 means a problem was found; check sets SEVERITY/MESSAGE/DETAILS
-            printf "\r   ${C_YELLOW}⚠${C_NC} %-40s ${C_YELLOW}%s${C_NC}\n" "$check_name" "WARNING"
+            printf "\r   ${C_YELLOW}[!]${C_NC} %-40s ${C_YELLOW}%s${C_NC}\n" "$check_name" "WARNING"
             echo "WARN:${SEVERITY:-warn}:$check_name:${MESSAGE:-unknown issue}:${DETAILS:-}" >> "$RESULTS_FILE"
         else
-            printf "\r   ${C_GREEN}✓${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name"
+            printf "\r   ${C_GREEN}[OK]${C_NC} %-40s ${C_GREEN}OK${C_NC}\n" "$check_name"
             echo "PASS:$check_name" >> "$RESULTS_FILE"
         fi
         
@@ -119,7 +119,7 @@ phase_2_checks() {
     done
     
     printf "\n"
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
     
     local fail_count
     fail_count="$(grep -c "^FAIL:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
@@ -127,18 +127,18 @@ phase_2_checks() {
     warn_count="$(grep -c "^WARN:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
     
     if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
-        printf "   ${C_RED}✗ Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
-        [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}⚠ %s WARNINGS${C_NC}" "$warn_count"
+        printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
+        [ "$warn_count" -gt 0 ] && printf " | ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$warn_count"
         printf "\n"
     else
-        printf "   ${C_GREEN}✓ All Checks Passed${C_NC}\n"
+        printf "   ${C_GREEN}[OK] All Checks Passed${C_NC}\n"
     fi
 }
 
 phase_3_triage() {
     phase_indicator 3 6 "Triage & Analysis"
     
-    # Phase 2 writes records as "WARN:<severity>:..." — match that prefix, not "FAIL:".
+    # Phase 2 writes records as "WARN:<severity>:..." - match that prefix, not "FAIL:".
     FATAL_COUNT="$(grep -c "^WARN:fatal:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
     WARN_COUNT="$(grep -c "^WARN:warn:"  "$RESULTS_FILE" 2>/dev/null || echo 0)"
     INFO_COUNT="$(grep -c "^WARN:info:"  "$RESULTS_FILE" 2>/dev/null || echo 0)"
@@ -151,14 +151,14 @@ phase_3_triage() {
     
     if [ "$FATAL_COUNT" -gt 0 ]; then
         vital_monitor "CRITICAL" "---" "---" "---"
-        printf "\n   ${C_RED}● PATIENT IN CRITICAL CONDITION${C_NC}\n"
-        printf "   ${C_RED}● IMMEDIATE RESCUE REQUIRED${C_NC}\n"
+        printf "\n   ${C_RED}* PATIENT IN CRITICAL CONDITION${C_NC}\n"
+        printf "   ${C_RED}* IMMEDIATE RESCUE REQUIRED${C_NC}\n"
     elif [ "$WARN_COUNT" -gt 0 ]; then
         vital_monitor "WARNING" "---" "---" "---"
-        printf "\n   ${C_YELLOW}● PATIENT REQUIRES ATTENTION${C_NC}\n"
+        printf "\n   ${C_YELLOW}* PATIENT REQUIRES ATTENTION${C_NC}\n"
     else
         vital_monitor "STABLE" "72" "98" "36.6"
-        printf "\n   ${C_GREEN}● PATIENT STABLE - NO IMMEDIATE ACTION REQUIRED${C_NC}\n"
+        printf "\n   ${C_GREEN}* PATIENT STABLE - NO IMMEDIATE ACTION REQUIRED${C_NC}\n"
     fi
 }
 
@@ -180,11 +180,11 @@ phase_4_menu() {
         [ -z "$check" ] && continue
         case "$severity" in
             fatal)
-                printf "   ${C_RED}[✗]${C_NC} ${C_BOLD}FATAL:${C_NC} %s\n" "$msg"
+                printf "   ${C_RED}[[!!]]${C_NC} ${C_BOLD}FATAL:${C_NC} %s\n" "$msg"
                 [ -n "$details" ] && printf "         ${C_DIM}%s${C_NC}\n" "$details"
                 ;;
             warn)
-                printf "   ${C_YELLOW}[⚠]${C_NC} ${C_BOLD}WARN:${C_NC} %s\n" "$msg"
+                printf "   ${C_YELLOW}[[!]]${C_NC} ${C_BOLD}WARN:${C_NC} %s\n" "$msg"
                 ;;
             info)
                 printf "   ${C_CYAN}[i]${C_NC} ${C_BOLD}INFO:${C_NC} %s\n" "$msg"
@@ -197,12 +197,12 @@ phase_4_menu() {
     printf "\n"
     
     local option_num=1
-    printf "   ${C_GREEN}[a]${C_NC} Auto-Treatment — Let ICU handle everything\n"
-    printf "   ${C_CYAN}[1]${C_NC} Quick Fix — Safe, low-risk repairs only\n"
-    printf "   ${C_YELLOW}[2]${C_NC} Full Treatment — Include all repairs\n"
-    printf "   ${C_RED}[3]${C_NC} Nuclear Option — Full state reset\n"
-    printf "   ${C_DIM}[s]${C_NC} Export Report — Save diagnostic data\n"
-    printf "   ${C_DIM}[q]${C_NC} Quit — Exit without changes\n"
+    printf "   ${C_GREEN}[a]${C_NC} Auto-Treatment - Let ICU handle everything\n"
+    printf "   ${C_CYAN}[1]${C_NC} Quick Fix - Safe, low-risk repairs only\n"
+    printf "   ${C_YELLOW}[2]${C_NC} Full Treatment - Include all repairs\n"
+    printf "   ${C_RED}[3]${C_NC} Nuclear Option - Full state reset\n"
+    printf "   ${C_DIM}[s]${C_NC} Export Report - Save diagnostic data\n"
+    printf "   ${C_DIM}[q]${C_NC} Quit - Exit without changes\n"
     
     printf "\n"
     printf "   ${C_BOLD}Select option [a]:${C_NC} "
@@ -218,13 +218,13 @@ phase_4_menu() {
             rescue_announce ING "Auto-treatment protocol selected..."
             ;;
         1)
-            printf "   ${C_CYAN}◐${C_NC} Quick-fix mode selected (low-risk repairs only)\n"
+            printf "   ${C_CYAN}/${C_NC} Quick-fix mode selected (low-risk repairs only)\n"
             ;;
         2)
-            printf "   ${C_YELLOW}◐${C_NC} Full-treatment mode selected\n"
+            printf "   ${C_YELLOW}/${C_NC} Full-treatment mode selected\n"
             ;;
         3)
-            printf "   ${C_RED}◐${C_NC} Nuclear option selected — proceeding to Phase 5\n"
+            printf "   ${C_RED}/${C_NC} Nuclear option selected - proceeding to Phase 5\n"
             ;;
         s|S)
             local report="$HOME/.openclaw/clawicu-report-$(date '+%Y%m%d-%H%M%S').txt"
@@ -237,7 +237,7 @@ phase_4_menu() {
                 echo ""
                 cat "$RESULTS_FILE"
             } > "$report"
-            printf "   ${C_GREEN}✓${C_NC} Report saved: %s\n" "$report"
+            printf "   ${C_GREEN}[OK]${C_NC} Report saved: %s\n" "$report"
             CLAWICU_CHOICE="q"
             ;;
         q|Q)
@@ -245,7 +245,7 @@ phase_4_menu() {
             exit 0
             ;;
         *)
-            printf "   ${C_YELLOW}⚠${C_NC} Invalid option, using auto-treatment...\n"
+            printf "   ${C_YELLOW}[!]${C_NC} Invalid option, using auto-treatment...\n"
             CLAWICU_CHOICE="a"
             ;;
     esac
@@ -290,7 +290,7 @@ phase_5_execute() {
     else
         # For each identified issue, find and run the matching repair module.
         # Results file format: WARN:<severity>:<check_name>:<message>:<details>
-        # check_name "config" → repairs/repair-config.sh → function repair_config
+        # check_name "config" -> repairs/repair-config.sh -> function repair_config
         while IFS=: read -r status severity check_name _msg _details; do
             [ "$status" = "WARN" ] || continue
             [ -z "$check_name" ] && continue
@@ -330,11 +330,11 @@ phase_5_execute() {
     fi
     
     printf "\n"
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
     
-    [ "$repaired" -gt 0 ] && printf "   ${C_GREEN}✓${C_NC} Repaired:  ${C_BOLD}%d${C_NC} module(s)\n" "$repaired"
-    [ "$failed"   -gt 0 ] && printf "   ${C_RED}✗${C_NC} Failed:    ${C_BOLD}%d${C_NC} module(s)\n" "$failed"
-    [ "$skipped"  -gt 0 ] && printf "   ${C_DIM}○ Skipped:  %d module(s) (no repair available or filtered by mode)${C_NC}\n" "$skipped"
+    [ "$repaired" -gt 0 ] && printf "   ${C_GREEN}[OK]${C_NC} Repaired:  ${C_BOLD}%d${C_NC} module(s)\n" "$repaired"
+    [ "$failed"   -gt 0 ] && printf "   ${C_RED}[!!]${C_NC} Failed:    ${C_BOLD}%d${C_NC} module(s)\n" "$failed"
+    [ "$skipped"  -gt 0 ] && printf "   ${C_DIM}- Skipped:  %d module(s) (no repair available or filtered by mode)${C_NC}\n" "$skipped"
     printf "\n"
 }
 
@@ -358,7 +358,7 @@ phase_6_report() {
     
     printf "\n"
     rescue_announce COMPLETE "Rescue operation finished"
-    printf "   ${C_GREEN}✓${C_NC} Report: ${C_BOLD}%s${C_NC}\n" "$report"
+    printf "   ${C_GREEN}[OK]${C_NC} Report: ${C_BOLD}%s${C_NC}\n" "$report"
 }
 
 main() {

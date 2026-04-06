@@ -14,7 +14,7 @@ set -e
 . "$(dirname "$0")/../lib/log.sh"
 
 repair_config_field() {
-    # Known resettable fields: dot-notation path → default value
+    # Known resettable fields: dot-notation path -> default value
     # Values are strings; numeric/boolean types are cast by the setter.
     _field_defaults() {
         case "$1" in
@@ -184,7 +184,7 @@ fs.writeFileSync(cfgPath, JSON.stringify(obj, null, 2));
             return 1
         fi
 
-        log_info "Resetting '$field' → '$default_val'"
+        log_info "Resetting '$field' -> '$default_val'"
 
         # Direct config file snapshot for rollback (backup_create returns a
         # tar.gz of the state dir and cannot be cp'd back as a config file).
