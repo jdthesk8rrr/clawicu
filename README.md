@@ -181,11 +181,7 @@ Spotted a new failure mode or a bad heuristic? **[Open an issue](https://github.
 
 ## 一条命令
 
-```bash
-curl -fsSL https://xagent.icu/r | sh
-```
 
-也可使用 `https://xagent.icu/rescue.sh`（与 `/r` 同源）。脚本为 **POSIX sh**，会从 **`/dev/tty`** 读菜单，管道执行不会「秒选默认项」。
 
 ### 界面预览
 
