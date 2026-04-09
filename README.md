@@ -165,7 +165,7 @@ Spotted a new failure mode or a bad heuristic? **[Open an issue](https://github.
 
 <br/>
 
-[**立即执行**](https://xagent.icu/r) · [**官网**](https://xagent.icu) · [**文档**](https://xagent.icu/docs) · [**救援流程**](https://xagent.icu/rescue) · [**SOS 分享**](https://xagent.icu/sos) · [**下载**](https://xagent.icu/download)
+ [**官网**](https://xagent.icu) · [**文档**](https://xagent.icu/docs) · [**救援流程**](https://xagent.icu/rescue) · [**SOS 分享**](https://xagent.icu/sos) ·
 
 </div>
 
