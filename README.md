@@ -8,14 +8,14 @@ One command. Twenty checks. Six phases. Back from the brink.
 
 <br/>
 
-[![Rescue script](https://img.shields.io/badge/rescue-0.2.0-ff4d4d?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://xagent.icu/r)
+[![Rescue script](https://img.shields.io/badge/rescue-0.2.0-ff4d4d?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://xagent.icu/)
 [![Issue guides](https://img.shields.io/badge/guides-25-2563eb?style=for-the-badge)](https://xagent.icu/docs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%26%20Linux-64748b?style=for-the-badge)](https://xagent.icu/download)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%26%20Linux-64748b?style=for-the-badge)](https://xagent.icu/)
 
 <br/>
 
-[**Run it now**](https://xagent.icu/r) · [**Website**](https://xagent.icu) · [**Docs**](https://xagent.icu/docs) · [**Rescue walkthrough**](https://xagent.icu/rescue) · [**SOS / Share**](https://xagent.icu/sos) · [**Download**](https://xagent.icu/download)
+[**Website**](https://xagent.icu) · [**Docs**](https://xagent.icu/docs) · [**Rescue walkthrough**](https://xagent.icu/rescue) · [**SOS / Share**](https://xagent.icu/sos) 
 
 </div>
 
