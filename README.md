@@ -237,6 +237,15 @@ npm run build:share-card
 
 ---
 
+<details>
+<summary>📊 View Star History Chart</summary>
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SonicBotMan/clawicu&type=Date)](https://star-history.com/#SonicBotMan/clawicu&Date)
+
+<i>Note: The chart above may take 24-48 hours to update due to GitHub's image cache. Click to view real-time data on Star History website.</i>
+
+</details>
+
 <div align="center">
 
 **MIT License** · 脚本当前版本 **0.2.0**（见 `CLAWICU_VERSION`）
